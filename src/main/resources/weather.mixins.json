@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "indi.yunherry.weather.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "weather.refmap.json",
+  "mixins": [
+    "MixinLevelRenderer"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
