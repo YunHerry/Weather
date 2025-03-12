@@ -8,7 +8,6 @@
     "MixinLevelRenderer"
   ],
   "client": [
-    "MixinSingleQuadParticle",
     "MixinWaterDropParticle"
   ],
   "injectors": {

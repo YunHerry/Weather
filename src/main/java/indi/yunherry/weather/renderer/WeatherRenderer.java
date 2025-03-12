@@ -5,8 +5,7 @@ import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import indi.yunherry.weather.client.Precipitation;
-import indi.yunherry.weather.util.BlockCollisionCheckerUtils;
-import indi.yunherry.weather.util.LevelUtils;
+import indi.yunherry.weather.util.ShaderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -58,7 +57,7 @@ public class WeatherRenderer {
     {
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder builder = tesselator.getBuilder();
-        RenderSystem.depthMask(Minecraft.useShaderTransparency());
+        RenderSystem.depthMask(Minecraft.useShaderTransparency() || ShaderUtils.areShadersRunning());
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
@@ -72,7 +71,6 @@ public class WeatherRenderer {
             RenderSystem.setShader(GameRenderer::getParticleShader);
             for (var entry : this.quadsByPrecipitation.entrySet())
             {
-                //TODO 贴图会卡住
                 RenderSystem.setShaderTexture(0, Precipitation.TEXTURE_BY_PRECIPITATION.get(entry.getKey()));
                 builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
                 PoseStack stack = new PoseStack();

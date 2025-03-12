@@ -2,6 +2,7 @@ package indi.yunherry.weather.mixin;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.client.particle.WaterDropParticle;
 import net.minecraft.core.BlockPos;
@@ -11,6 +12,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,6 +34,10 @@ public abstract class MixinWaterDropParticle extends TextureSheetParticle {
 
     protected MixinWaterDropParticle(ClientLevel p_108323_, double p_108324_, double p_108325_, double p_108326_, Function<ClipContext, BlockHitResult> raycaster) {
         super(p_108323_, p_108324_, p_108325_, p_108326_);
+    }
+    @Overwrite
+    public @NotNull ParticleRenderType getRenderType() {
+        return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
     }
 
     /**
