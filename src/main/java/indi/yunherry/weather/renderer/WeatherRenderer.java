@@ -5,6 +5,8 @@ import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import indi.yunherry.weather.client.Precipitation;
+import indi.yunherry.weather.util.BlockCollisionCheckerUtils;
+import indi.yunherry.weather.util.LevelUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -24,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
@@ -38,7 +41,6 @@ public class WeatherRenderer {
     private static final Logger log = LoggerFactory.getLogger(WeatherRenderer.class);
     public static WeatherRenderer instance = new WeatherRenderer();
     private Minecraft mc = Minecraft.getInstance();
-
     public Map<BlockPos, Precipitation> getPrecipitationQuads() {
         return precipitationQuads;
     }
@@ -63,18 +65,21 @@ public class WeatherRenderer {
 
         if (!this.quadsByPrecipitation.isEmpty())
         {
+            //这里是操作雨的贴图
             texture.turnOnLightLayer();
             RenderSystem.defaultBlendFunc();
             RenderSystem.disableCull();
             RenderSystem.setShader(GameRenderer::getParticleShader);
             for (var entry : this.quadsByPrecipitation.entrySet())
             {
+                //TODO 贴图会卡住
                 RenderSystem.setShaderTexture(0, Precipitation.TEXTURE_BY_PRECIPITATION.get(entry.getKey()));
                 builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
                 PoseStack stack = new PoseStack();
                 stack.translate(-camX, -camY, -camZ);
                 for (Precipitation quad : entry.getValue())
                 {
+                    //render
                     stack.pushPose();
                     int packedLight = LevelRenderer.getLightColor(this.mc.level, quad.getBlockPos());
                     quad.render(stack, builder, partialTick, packedLight, camX, camY, camZ);
@@ -104,8 +109,10 @@ public class WeatherRenderer {
         int minY = camPos.getY() + 8;
         int minZ = camPos.getZ() - radius - zOffset;
         int maxX = camPos.getX() + radius - xOffset;
-        int maxY = camPos.getY() + 8 + 8;
+        //TODO configable
+        int maxY = camPos.getY() + 32;
         int maxZ = camPos.getZ() + radius - zOffset;
+        //框定范围
         AABB box = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
         Biome biome = this.mc.level.getBiome(camPos).value();
         if (rainIntensity > 0.0F && biome.hasPrecipitation())
@@ -120,6 +127,7 @@ public class WeatherRenderer {
                     {
                         if (height > y)
                             continue;
+                        //render start position
                         BlockPos pos = new BlockPos(x, y, z);
                         Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
                         RandomSource blockRandom = RandomSource.create(pos.asLong());
@@ -147,74 +155,7 @@ public class WeatherRenderer {
             //渲染雨滴的开始位置
             BlockPos pos = entry.getKey();
             //是否超出视野,或者是是否已经落地,没有就继续执行
-            BlockPos downPos =  quad.getDownBlockPos();
-            if (downPos != null) {
-                if (random.nextFloat() > 0.25f) {
-                    BlockState blockstate = levelreader.getBlockState(downPos);
-                    FluidState fluidstate = levelreader.getFluidState(downPos);
-                    VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
-                    double d0 = random.nextDouble();
-                    double d1 = random.nextDouble();
-                    double d2 = voxelshape.max(Direction.Axis.Y, d0, d1);
-                    double d3 = (double)fluidstate.getHeight(levelreader, downPos);
-                    double d4 = Math.max(d2, d3);
-                    ParticleOptions particleoptions = !fluidstate.is(FluidTags.LAVA) && !blockstate.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockstate) ? ParticleTypes.RAIN : ParticleTypes.SMOKE;
-                    double particleX = downPos.getX() + 0.5;
-                    double particleY = downPos.getY() + d4 + 0.25;
-                    double particleZ = downPos.getZ() + 0.5;
 
-                    Direction hitDirection = quad.getHitDirection();
-                    double edgeOffset = 0.1; // 外侧偏移量
-                    double yRandom = d0 * 0.4 + 0.3; // Y轴随机范围 [0.3, 0.7)
-                    switch (hitDirection) {
-                        case UP -> {
-                            // 顶部生成：XZ平面随机，Y保持顶部上方
-                            particleX += d0 - 0.5; // [-0.5, 0.5) 范围
-                            particleZ += d1 - 0.5;
-                            particleY = downPos.getY() + 1.0 + edgeOffset;
-                        }
-                        case DOWN -> {
-                            // 底部生成：Y轴紧贴底部下方
-                            particleX += d0 - 0.5;
-                            particleZ += d1 - 0.5;
-                            particleY = downPos.getY() - edgeOffset;
-                        }
-                        case NORTH -> {
-                            // 北侧生成：Z轴向外偏移，Y轴在碰撞高度附近随机
-                            particleZ = downPos.getZ() - edgeOffset;
-                            particleX += d0 - 0.5;
-                            particleY += yRandom - 0.5; // 保持Y在碰撞高度附近
-                        }
-                        case SOUTH -> {
-                            // 南侧生成：Z轴向外偏移
-                            particleZ = downPos.getZ() + 1.0 + edgeOffset;
-                            particleX += d0 - 0.5;
-                            particleY += yRandom - 0.5;
-                        }
-                        case EAST -> {
-                            // 东侧生成：X轴向外偏移
-                            particleX = downPos.getX() + 1.0 + edgeOffset;
-                            particleZ += d1 - 0.5;
-                            particleY += yRandom - 0.5;
-                        }
-                        case WEST -> {
-                            // 西侧生成：X轴向外偏移
-                            particleX = downPos.getX() - edgeOffset;
-                            particleZ += d1 - 0.5;
-                            particleY += yRandom - 0.5;
-                        }
-                    }
-                    levelreader.addParticle(
-                            particleoptions,
-                            particleX,
-                            Mth.clamp(particleY, downPos.getY(), downPos.getY() + 1.0), // 限制Y在方块高度范围内
-                            particleZ,
-                            0.0, 0.0, 0.0
-                    );
-
-                }
-
-            }
             if (!box.contains(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) || quad.isDead())
             {
                 this.quadsByPrecipitation.get(quad.getPrecipitation()).remove(quad);
@@ -224,7 +165,80 @@ public class WeatherRenderer {
             {
                 quad.tick();
             }
+
         }
+        //fix physics block
+        this.precipitationQuads.forEach((key, value) -> {
+            Level levelreader = this.mc.level;
+            BlockPos downPos = value.getDownBlockPos();
+            if (downPos != null) {
+                Vec3 downLocation = value.getDownPos();
+//                if (Math.abs(downPos.getX()) > 20000000) return;
+                BlockState blockstate = levelreader.getBlockState(downPos);
+                FluidState fluidstate = levelreader.getFluidState(downPos);
+                VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
+                double d0 = random.nextDouble();
+                double d1 = random.nextDouble();
+                double d2 = voxelshape.max(Direction.Axis.Y, d0, d1);
+                double d3 = (double) fluidstate.getHeight(levelreader, downPos);
+                double d4 = Math.max(d2, d3);
+                ParticleOptions particleoptions = !fluidstate.is(FluidTags.LAVA) && !blockstate.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockstate) ? ParticleTypes.RAIN : ParticleTypes.SMOKE;
+                double particleX = downPos.getX() + 0.5;
+                double particleY = downPos.getY() + d4 + 0.25;
+                double particleZ = downPos.getZ() + 0.5;
+                Direction hitDirection = value.getHitDirection();
+                double edgeOffset = 0.1; // 外侧偏移量
+                double yRandom = d0 * 0.4 + 0.3; // Y轴随机范围 [0.3, 0.7)
+//                if (hitDirection != Direction.UP) return;
+                //TODO 在大体积的情况下会漏
+                switch (hitDirection) {
+                    case UP -> {
+                        // 顶部生成：XZ平面随机，Y保持顶部上方
+                        particleX += d0 - 0.5; // [-0.5, 0.5) 范围
+                        particleZ += d1 - 0.5;
+                        particleY = downPos.getY() + 1.0 + edgeOffset;
+                    }
+                    case NORTH -> {
+                        // 北侧生成：Z轴向外偏移，Y轴在碰撞高度附近随机
+                        particleZ = downPos.getZ() - edgeOffset;
+                        particleX += d0 - 0.5;
+                        particleY += yRandom - 0.5; // 保持Y在碰撞高度附近
+                    }
+                    case SOUTH -> {
+                        // 南侧生成：Z轴向外偏移
+                        particleZ = downPos.getZ() + 1.0 + edgeOffset;
+                        particleX += d0 - 0.5;
+                        particleY += yRandom - 0.5;
+                    }
+                    case EAST -> {
+                        // 东侧生成：X轴向外偏移
+                        particleX = downPos.getX() + 1.0 + edgeOffset;
+                        particleZ += d1 - 0.5;
+                        particleY += yRandom - 0.5;
+                    }
+                    case WEST -> {
+                        // 西侧生成：X轴向外偏移
+                        particleX = downPos.getX() - edgeOffset;
+                        particleZ += d1 - 0.5;
+                        particleY += yRandom - 0.5;
+                    }
+                    case DOWN -> {
+                        log.info("执行了");
+                    }
+                }
+                levelreader.addParticle(
+                        particleoptions,
+                        particleX,
+                        Mth.clamp(particleY, downPos.getY(), downPos.getY() + 1.0), // 限制Y在方块高度范围内
+                        particleZ,
+                        0.0, 0.0, 0.0
+                );
+//                if (BlockCollisionCheckerUtils.isInsideBlock(levelreader,downPos.getCenter(),false)) {
+//                    log.info("位置:" + "x: " + particleX + " y: " + Mth.clamp(particleY, downPos.getY(), downPos.getY() + 1.0) + " z: " + particleZ);
+//                }
+            }
+        });
+
     }
 
 }

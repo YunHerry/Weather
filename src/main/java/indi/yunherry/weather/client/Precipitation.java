@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -12,10 +13,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -29,6 +33,7 @@ public class Precipitation {
         map.put(Biome.Precipitation.SNOW, new ResourceLocation("textures/environment/snow.png"));
         return map.build();
     });
+    private static final Logger log = LoggerFactory.getLogger(Precipitation.class);
     private final Biome.Precipitation precipitation;
     private final BlockPos blockPos;
     private final Vector3f position;
@@ -43,6 +48,11 @@ public class Precipitation {
     private float width;
     private BlockPos downBlockPos;
 
+    public Vec3 getDownPos() {
+        return downPos;
+    }
+
+    private Vec3 downPos;
     public Direction getHitDirection() {
         return hitDirection;
     }
@@ -127,7 +137,12 @@ public class Precipitation {
         BlockHitResult result = this.raycaster.apply(context);
         hitDirection = result.getDirection();
         Vec3 hit = result.getLocation();
-        this.downBlockPos = result.getBlockPos();
+        if (result.getType() != HitResult.Type.MISS) {
+            this.downBlockPos = result.getBlockPos();
+            this.downPos = hit;
+        } else {
+            this.downBlockPos = null;
+        }
         this.length = (float)start.distanceTo(hit);
         this.widthO = this.width;
         if (this.tickCount < this.lifeSpan - 20)

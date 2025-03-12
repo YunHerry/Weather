@@ -60,36 +60,37 @@ public class MixinLevelRenderer {
     {
         RandomSource randomsource = RandomSource.create((long)this.ticks * 312987231L);
         if (!WorldContext.renderer.getPrecipitationQuads().isEmpty()  && randomsource.nextInt(3) < this.rainSoundTime++) {
-            this.rainSoundTime = 0;
-            AtomicReference<Float> nearDistance = new AtomicReference<>((float) 10000);
-            AtomicReference<BlockPos> blockPos = new AtomicReference<>();
-            BlockPos playerPos = this.minecraft.player.blockPosition();
-            List<Precipitation> rainQuads = WorldContext.renderer.getQuadsByPrecipitation().get(Biome.Precipitation.RAIN);
-            rainQuads.forEach(item->{
-                float val = Math.min((float) Math.sqrt(item.getBlockPos().distSqr(playerPos)), nearDistance.get());
-                if (val != nearDistance.get()) {
-                    nearDistance.set(val);
-                    blockPos.set(item.getDownBlockPos());
-                }
-            });
-            boolean isAbovePlayer = blockPos.get().getY() > playerPos.getY() + 1;
-            boolean hasCeiling = blockPos.get().getY() > playerPos.getY();
-
-            SoundEvent sound = isAbovePlayer && hasCeiling ?
-                    SoundEvents.WEATHER_RAIN_ABOVE :
-                    SoundEvents.WEATHER_RAIN;
-
-            //大雨0.4 中雨 0.2 小雨 0.01
-            float volume = Mth.clampedMap(nearDistance.get(), 4.0F, 18.0F, 0.0f, 0.4F);
-
-            this.minecraft.level.playLocalSound(
-                    blockPos.get(),
-                    sound,
-                    SoundSource.WEATHER,
-                    volume,
-                    isAbovePlayer ? 0.5F : 1.0F,
-                    false
-            );
+//            this.rainSoundTime = 0;
+//            AtomicReference<Float> nearDistance = new AtomicReference<>((float) 10000);
+//            AtomicReference<BlockPos> blockPos = new AtomicReference<>();
+//            BlockPos playerPos = this.minecraft.player.blockPosition();
+//            List<Precipitation> rainQuads = WorldContext.renderer.getQuadsByPrecipitation().get(Biome.Precipitation.RAIN);
+//            rainQuads.forEach(item->{
+//                float val = Math.min((float) Math.sqrt(item.getBlockPos().distSqr(playerPos)), nearDistance.get());
+//                if (val != nearDistance.get()) {
+//                    nearDistance.set(val);
+//                    blockPos.set(item.getDownBlockPos());
+//                }
+//            });
+//            if(blockPos.get() == null) return;
+//            boolean isAbovePlayer = blockPos.get().getY() > playerPos.getY() + 1;
+//            boolean hasCeiling = blockPos.get().getY() > playerPos.getY();
+//
+//            SoundEvent sound = isAbovePlayer && hasCeiling ?
+//                    SoundEvents.WEATHER_RAIN_ABOVE :
+//                    SoundEvents.WEATHER_RAIN;
+//
+//            //大雨0.4 中雨 0.2 小雨 0.01
+//            float volume = Mth.clampedMap(nearDistance.get(), 4.0F, 18.0F, 0.0f, 0.4F);
+//
+//            this.minecraft.level.playLocalSound(
+//                    blockPos.get(),
+//                    sound,
+//                    SoundSource.WEATHER,
+//                    volume,
+//                    isAbovePlayer ? 0.5F : 1.0F,
+//                    false
+//            );
         }
         ci.cancel();
     }
