@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.client.Precipitation;
 import indi.yunherry.weather.util.ShaderUtils;
 import net.minecraft.client.Minecraft;
@@ -127,7 +128,8 @@ public class WeatherRenderer {
                             continue;
                         //render start position
                         BlockPos pos = new BlockPos(x, y, z);
-                        Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
+//                        Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
+                        Biome.Precipitation precipitation = WorldContext.nowWeather.equals("rain")? Biome.Precipitation.RAIN: Biome.Precipitation.SNOW;
                         RandomSource blockRandom = RandomSource.create(pos.asLong());
                         if (!this.precipitationQuads.containsKey(pos))
                         {
@@ -166,6 +168,7 @@ public class WeatherRenderer {
 
         }
         //fix physics block
+        if(WorldContext.nowWeather.equals("snow")) return;
         this.precipitationQuads.forEach((key, value) -> {
             Level levelreader = this.mc.level;
             BlockPos downPos = value.getDownBlockPos();

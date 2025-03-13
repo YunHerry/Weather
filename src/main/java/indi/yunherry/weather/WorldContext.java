@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 
 public class WorldContext {
     public final static WeatherRenderer renderer = WeatherRenderer.instance;
+    public static String nowWeather = "rain";
     protected WorldContext()
     {
     }

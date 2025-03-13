@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "weather.refmap.json",
   "mixins": [
+    "MixinCommands",
     "MixinLevelRenderer"
   ],
   "client": [
