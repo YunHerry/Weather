@@ -1,14 +1,13 @@
 buildscript {
     repositories {
         // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
-        maven {
-                url "https://cursemaven.com"
-        }
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        mavenCentral()
+        mavenLocal()
+        maven { url = 'https://repo.spongepowered.org/maven' }
+
     }
     dependencies {
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0'
     }
 }
 
@@ -17,7 +16,6 @@ plugins {
     id 'idea'
     id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
 }
-
 apply plugin: 'org.spongepowered.mixin'
 
 group = mod_group_id
@@ -46,7 +44,7 @@ minecraft {
     // Use non-default mappings at your own risk. They may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
     mappings channel: mapping_channel, version: mapping_version
-
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     // When true, this property will have all Eclipse/IntelliJ IDEA run configurations run the "prepareX" task for the given run configuration before launching the game.
     // In most cases, it is not necessary to enable.
     // enableEclipsePrepareRuns = true
@@ -73,6 +71,7 @@ minecraft {
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
+
         // applies to all the run configs below
         configureEach {
             workingDirectory project.file('run')
@@ -100,6 +99,8 @@ minecraft {
         client {
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             property 'forge.enabledGameTestNamespaces', mod_id
+            jvmArgs += ["--add-opens=java.base/java.lang=ALL-UNNAMED",
+                        "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED"]
         }
 
         server {
@@ -126,7 +127,6 @@ minecraft {
 
 mixin {
     add sourceSets.main, "${mod_id}.refmap.json"
-
     config "${mod_id}.mixins.json"
 }
 
@@ -134,46 +134,74 @@ mixin {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    // Put repositories for dependencies here
-    // ForgeGradle automatically adds the Forge maven and Maven Central for you
-
-    // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
-    // flatDir {
-    //     dir 'libs'
-    // }
+    mavenLocal()
+    maven { url 'https://maven.aliyun.com/repository/google' }
+    maven { url 'https://maven.aliyun.com/repository/jcenter' }
+    maven { url 'https://maven.aliyun.com/repository/public' }
+    maven {
+        url "https://maven.minecraftforge.net/"
+    }
     maven {
         url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
     }
+    maven {
+        url = "https://api.modrinth.com/maven"
+        name = "Modrinth"
+    }
+    maven {
+        name = 'Kotlin for Forge'
+        url = 'https://thedarkcolour.github.io/KotlinForForge/'
+    }
+    maven {
+        name = "DaPorkchop_"
+        url = "https://maven.daporkchop.net/"
+    }
+    maven {
+        name = "ParchmentMC"
+        url = "https://maven.parchmentmc.org"
+    }
+    maven {
+        name = "Valkyrien Skies Internal"
+        url = 'https://maven.valkyrienskies.org'
+        allowInsecureProtocol = true
+    }
+    mavenCentral()
 }
-
 dependencies {
-    // Specify the version of Minecraft to use.
-    // Any artifact can be supplied so long as it has a "userdev" classifier artifact and is a compatible patcher artifact.
-    // The "userdev" classifier will be requested and setup by ForgeGradle.
-    // If the group id is "net.minecraft" and the artifact id is one of ["client", "server", "joined"],
-    // then special handling is done to allow a setup of a vanilla dependency without the use of an external repository.
+
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:0.4.1")) {
+        jarJar.ranged(it, "[0.4.1,)")
+    }
+//    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk17:2.0.0")
+//    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20")
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    runtimeOnly fg.deobf("curse.maven:kotlin-351264:5402061")
-    implementation fg.deobf("curse.maven:valkyrien-258371:5212232")
-    implementation fg.deobf("curse.maven:eureka-654384:5321630")
+//    implementation fg.deobf("curse.maven:kotlin-351264:5402061")
+//    implementation fg.deobf("maven.modrinth:valkyrien-skies:1.20.1-forge-2.3.0-beta.5")
+//    compileOnly "org.valkyrienskies:api:1.0.0.9"
+    implementation 'thedarkcolour:kotlinforforge:4.10.0'
+
+    // vs gradle loom
+    implementation("org.joml:joml:1.10.4") { transitive = false }
+    implementation("org.joml:joml-primitives:1.10.0") { transitive = false }
+
+    implementation fg.deobf("org.valkyrienskies:valkyrienskies-120-forge:${vs2_version}") { transitive = false }
+
+    compileOnly ("org.valkyrienskies.core:api:${vs_core_version}")
+    compileOnly ("org.valkyrienskies.core:api-game:${vs_core_version}")
+    compileOnly ("org.valkyrienskies.core:util:${vs_core_version}")
+    compileOnly ("org.valkyrienskies.core:impl:${vs_core_version}")
+//    compileOnly fg.deobf("maven.modrinth:valkyrien-skies:1.20.1-forge-2.3.0-beta.5")
+//    runtimeOnly  fg.deobf("org.valkyrienskies:valkyrienskies-${rootProject.vs2_mc_version}-forge:${rootProject.vs2_version}")
+//    implementation fg.deobf("curse.maven:eureka-654384:5321630")
+
 //    runtimeOnly "curse.maven:kotlin-351264:5978393"
-//    runtimeOnly "curse.maven:valkyrien-258371:5212232"
-//    runtimeOnly "curse.maven:eureka-654384:5321630"
-    // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
-    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-//     compileOnly fg.deobf("mezz.jei:jei-${mc_version}-common-api:${jei_version}")
-    // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-forge-api:${jei_version}")
-    // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}-forge:${jei_version}")
-
-    // Example mod dependency using a mod jar from ./libs with a flat dir repository
-    // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
-    // The group id is ignored when searching -- in this case, it is "blank"
-    // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
-
-    // For more info:
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+//    runtimeOnly fg.deobf("maven.modrinth:valkyrien-skies:1.20.1-forge-2.3.0-beta.5")
+//    compileOnly "curse.maven:eureka-654384:5321630"
+//    runtimeOnly fg.deobf('maven.modrinth:eureka:1.20.1-forge-1.5.1-beta.3')
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
@@ -206,7 +234,9 @@ tasks.named('jar', Jar).configure {
                     "Implementation-Title"    : project.name,
                     "Implementation-Version"  : project.jar.archiveVersion,
                     "Implementation-Vendor"   : mod_authors,
-                    "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")])
+                    "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                    accessTransformer         : file('src/main/resources/META-INF/accesstransformer.cfg')])
+
     }
     // This is the preferred method to reobfuscate your jar file
     finalizedBy 'reobfJar'

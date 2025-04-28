@@ -1,5 +1,6 @@
 package indi.yunherry.weather.hook;
 
+import indi.yunherry.weather.WeatherType;
 import indi.yunherry.weather.WorldContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -35,7 +36,7 @@ public class WeatherHooks {
     public static int setRain(CommandSourceStack p_139178_, int p_139179_) {
         p_139178_.getLevel().setWeatherParameters(0, getDuration(p_139178_, p_139179_, ServerLevel.RAIN_DURATION), true, false);
         p_139178_.sendSuccess(() -> {
-            WorldContext.nowWeather = "rain";
+            WorldContext.nowWeather = WeatherType.RAIN;
             return Component.translatable("commands.weather.set.rain");
         }, true);
         return p_139179_;
@@ -47,7 +48,7 @@ public class WeatherHooks {
     public static int setSnow(CommandSourceStack p_139178_, int p_139179_) {
         p_139178_.getLevel().setWeatherParameters(0, getDuration(p_139178_, p_139179_, ServerLevel.RAIN_DURATION), true, false);
         p_139178_.sendSuccess(() -> {
-            WorldContext.nowWeather = "snow";
+            WorldContext.nowWeather = WeatherType.SNOW;
             return Component.translatable("weather.weather.set.snow");
         }, true);
         return p_139179_;

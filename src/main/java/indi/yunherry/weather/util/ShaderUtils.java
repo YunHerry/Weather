@@ -16,8 +16,9 @@ public class ShaderUtils {
         } catch (ClassNotFoundException var2) {
             return false;
         }
-            return true;
+        return true;
     }
+
     public static boolean areShadersRunning() {
         try {
             Method method;
@@ -37,13 +38,15 @@ public class ShaderUtils {
         } catch (IllegalArgumentException | InvocationTargetException | ClassNotFoundException | NoSuchMethodException |
                  SecurityException | IllegalAccessException var3) {
             Exception e = var3;
-log.error("Failed to check if shaders are enabled:");
+            log.error("Failed to check if shaders are enabled:");
             return false;
         }
     }
+
     public static boolean isOculusLoaded() {
         return ModList.get().isLoaded("oculus");
     }
+
     public static boolean isSodiumLoaded() {
         return ModList.get().isLoaded("rubidium");
     }

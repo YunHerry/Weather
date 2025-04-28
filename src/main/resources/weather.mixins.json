@@ -2,13 +2,17 @@
   "required": true,
   "minVersion": "0.8",
   "package": "indi.yunherry.weather.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "weather.refmap.json",
   "mixins": [
+    "InvokerEntityShipCollisionUtils",
     "MixinCommands",
     "MixinLevelRenderer"
   ],
   "client": [
+    "MixinBaseAshSmokeParticle",
+    "MixinParticle",
+    "MixinParticleEngine",
     "MixinWaterDropParticle"
   ],
   "injectors": {
