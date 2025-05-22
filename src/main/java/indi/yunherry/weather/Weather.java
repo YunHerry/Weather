@@ -71,21 +71,7 @@ public class Weather {
         WorldContext.mainClass = Weather.class;
         Factory.initFactory();
         ClassLoader modClassLoader = Weather.class.getClassLoader();
-//        System.out.println("modClassLoader: " + modClassLoader.getDefinedPackage());
-//        System.out.println(Class.forName("indi.yunherry.weather.Weather").getName());
-//        var result = Arrays.stream(modClassLoader.getDefinedPackages()).filter(item -> {
-//            return item.getName().startsWith("indi.yunherry.weather");
-//        });
-        // 2. 获取基准类的 URL（例如主类）
-//        result.forEach(item->{
-//            System.out.println(loadClassesInPackage(item,modClassLoader).toString());;
-//        });
-//        ModFileScanData.AnnotationData[] items = ModList.get().getAllScanData().stream().map(ModFileScanData::getAnnotations) // 获取所有注解
-//                .flatMap(Collection::stream) // 扁平化注解流
-//                .filter(item -> item.annotationType().equals(Renderer.class)  // 比较注解类型
-//                ).toArray(ModFileScanData.AnnotationData[]::new); // 返回 AnnotationData 数组
-//        ;
-//
+
     }
 
     private static Set<Class<?>> loadClassesInPackage(Package pkg, ClassLoader classLoader) {
@@ -115,7 +101,7 @@ public class Weather {
 
     @SubscribeEvent
     public void registerCommands(RegisterCommandsEvent event) {
-        DebugCommand.registerCommand(event);
+//        DebugCommand.registerCommand(event);
         // Do something when the server starts
     }
 

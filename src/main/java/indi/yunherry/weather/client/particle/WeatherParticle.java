@@ -78,7 +78,6 @@ public class WeatherParticle extends TextureSheetParticle {
         }
     }
 
-    //FIXME: obstruction removal triggers when wind is 0...
     protected boolean removeIfObstructed() {
         if (x == xo || z == zo) {
             this.remove();

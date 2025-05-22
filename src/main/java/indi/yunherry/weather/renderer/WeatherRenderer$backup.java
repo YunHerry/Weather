@@ -9,7 +9,7 @@ import indi.yunherry.weather.ParticleRegistry;
 import indi.yunherry.weather.WeatherType;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.client.RainParticleQuad;
-import indi.yunherry.weather.util.ShaderUtils;
+import indi.yunherry.weather.utils.ShaderUtils;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;

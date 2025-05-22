@@ -6,12 +6,13 @@ import net.minecraft.util.RandomSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class WorldContext {
     public final static WeatherRenderer$backup renderer = WeatherRenderer$backup.instance;
     public static WeatherType nowWeather = WeatherType.NONE;
     public static WindDirectionType windDirection = WindDirectionType.NONE;
-    public static RandomSource random = RandomSource.create();
+    public static ThreadLocalRandom random = ThreadLocalRandom.current();
     public static boolean isEasing = false;
     public static float easeStartAngle = 0.0f;
     public static float easeTargetAngle = 0.0f;

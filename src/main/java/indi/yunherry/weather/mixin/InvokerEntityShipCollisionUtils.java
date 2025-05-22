@@ -23,7 +23,6 @@ public abstract class InvokerEntityShipCollisionUtils implements EntityShipColli
                                                                            Vec3 movement,
                                                                            AABB entityBoundingBox,
                                                                            ClientLevel world) {
-//        Log.info("ttttttttttttttttttttest");
         return getShipPolygonsCollidingWithEntity(entity,movement,entityBoundingBox,world);
     }
 

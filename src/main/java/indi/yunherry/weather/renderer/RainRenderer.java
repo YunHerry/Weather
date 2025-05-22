@@ -4,13 +4,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import indi.yunherry.weather.WeatherType;
-import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.client.RainParticleQuad;
-import indi.yunherry.weather.util.ShaderUtils;
+import indi.yunherry.weather.utils.ShaderUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
@@ -28,16 +25,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
-import static indi.yunherry.weather.WorldContext.nowWeather;
-import static indi.yunherry.weather.WorldContext.random;
 import static net.minecraft.client.renderer.LevelRenderer.getLightColor;
 
 @Renderer
@@ -71,6 +66,7 @@ public class RainRenderer extends WeatherRenderer {
 
             Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
             if (rainIntensity > 0.0F && biome.hasPrecipitation()) {
+                ThreadLocalRandom random = ThreadLocalRandom.current();
                 for (int x = minX; x < maxX; x++) {
                     for (int z = minZ; z < maxZ; z++) {
                         int height = this.mc.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
@@ -98,6 +94,7 @@ public class RainRenderer extends WeatherRenderer {
                     BlockState blockstate = levelreader.getBlockState(downPos);
                     FluidState fluidstate = levelreader.getFluidState(downPos);
                     VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
+                    ThreadLocalRandom random = ThreadLocalRandom.current();
                     double d0 = random.nextDouble();
                     double d1 = random.nextDouble();
                     double d2 = voxelshape.max(Direction.Axis.Y, d0, d1);
@@ -158,6 +155,7 @@ public class RainRenderer extends WeatherRenderer {
     }
     @Override
     public void renderWeather(LightTexture texture, float partialTick, int ticks) {
+
         float xRot = (12.5f) * ((float) Math.PI / 180.0F);
         Vector3f direction = new Vector3f(1.0F, 0.0F, 0.0F);
         float yRot = (float) -Mth.atan2(direction.x, direction.z);

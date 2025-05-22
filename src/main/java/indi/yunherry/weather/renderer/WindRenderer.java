@@ -7,7 +7,8 @@ import indi.yunherry.weather.annotation.Renderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.biome.Biome;
 
-import static indi.yunherry.weather.WorldContext.random;
+import java.util.concurrent.ThreadLocalRandom;
+
 import static indi.yunherry.weather.WorldContext.windDirection;
 
 @Renderer(isConditionalRendering = true, isEnableRandomTick = true)
@@ -23,7 +24,7 @@ public class WindRenderer extends ParticleRenderer {
         if (windDirection != WindDirectionType.NONE) {
             windDirection = WindDirectionType.NONE;
         } else {
-            windDirection = directionTypes[random.nextInt(directionTypes.length)];
+            windDirection = directionTypes[ThreadLocalRandom.current().nextInt(directionTypes.length)];
         }
 
 
@@ -31,7 +32,7 @@ public class WindRenderer extends ParticleRenderer {
 
     @Override
     public boolean isRandomTick() {
-        return random.nextInt(1000) >= 998;
+        return ThreadLocalRandom.current().nextInt(1000) >= 998;
     }
 
     @Override
@@ -39,6 +40,7 @@ public class WindRenderer extends ParticleRenderer {
         Biome biome = this.mc.level.getBiome(camPos).value();
         if (level.isRaining() && biome.getPrecipitationAt(camPos) != Biome.Precipitation.SNOW) return;
         if (windDirection != WindDirectionType.NONE) {
+            ThreadLocalRandom random = ThreadLocalRandom.current();
             level.addParticle(ParticleRegistry.WIND.get(), camPos.getX() + random.nextDouble() - 0.5, camPos.getY() + random.nextDouble() - 0.6, camPos.getZ() + random.nextDouble() - 0.5, 0.0, 0.0, 0.0);
 //                this.mc.level.addParticle(ParticleRegistry.WIND.get(), 517, 94, 210, 0.0, 0.0, 0.0);
         }
@@ -46,6 +48,6 @@ public class WindRenderer extends ParticleRenderer {
 
     @Override
     public boolean isRender() {
-        return random.nextInt(100) >= 99;
+        return ThreadLocalRandom.current().nextInt(100) >= 99;
     }
 }

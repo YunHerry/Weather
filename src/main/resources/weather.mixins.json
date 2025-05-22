@@ -4,6 +4,7 @@
   "package": "indi.yunherry.weather.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "weather.refmap.json",
+  "plugin": "indi.yunherry.weather.plugin.CompatMixinPlugin",
   "mixins": [
     "InvokerEntityShipCollisionUtils",
     "MixinCommands",

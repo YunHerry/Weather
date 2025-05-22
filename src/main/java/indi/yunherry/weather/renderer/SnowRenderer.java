@@ -10,8 +10,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import static indi.yunherry.weather.WorldContext.nowWeather;
-import static indi.yunherry.weather.WorldContext.random;
 
 @Renderer
 public class SnowRenderer extends WeatherRenderer {
@@ -28,7 +29,9 @@ public class SnowRenderer extends WeatherRenderer {
     public void tick() {
         if (!level.isRaining()) return;
         Biome biome = this.mc.level.getBiome(camPos).value();
+        //坏了,这里到底是不是冗余代码
         if (biome.getPrecipitationAt(camPos) == Biome.Precipitation.SNOW) {
+            ThreadLocalRandom random = ThreadLocalRandom.current();
             for (int i = 0; i < MAX_PARTICLES; i++) {
                 // 生成偏向中心的分布
                 double theta = random.nextDouble() * 2 * Math.PI;
@@ -61,7 +64,7 @@ public class SnowRenderer extends WeatherRenderer {
         //从云的高度下生成
         y = y + 8;
         final BlockPos getPrecipitationFromBlockPos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, pos);
-        if (level.random.nextFloat() < 0.8f) {
+        if (ThreadLocalRandom.current().nextFloat() < 0.8f) {
             level.addParticle(ParticleRegistry.SNOW.get(), x, y, z, 0, 0, 0);
         }
     }

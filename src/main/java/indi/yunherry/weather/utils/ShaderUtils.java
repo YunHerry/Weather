@@ -1,4 +1,4 @@
-package indi.yunherry.weather.util;
+package indi.yunherry.weather.utils;
 
 import net.minecraftforge.fml.ModList;
 import org.slf4j.Logger;
