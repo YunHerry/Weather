@@ -17,13 +17,10 @@ import static indi.yunherry.weather.WorldContext.random;
 
 
 public class SnowParticle extends WeatherParticle {
-    private static final Logger log = LoggerFactory.getLogger(SnowParticle.class);
     private final float rotationAmount;
     private SpriteSet sprites;
     protected SnowParticle(ClientLevel p_108323_, double p_108324_, double p_108325_, double p_108326_,SpriteSet spriteSet) {
         super(p_108323_, p_108324_, p_108325_, p_108326_);
-//        log.info("雪粒子在该坐标系下被生成: " + " x: " + this.x + " y: " + this.y + " z: " + this.z);
-//        this.setSprite(((MixinParticleEngine) Minecraft.getInstance().particleEngine).getTextureAtlas().getSprite(ResourceLocation.fromNamespaceAndPath(MOD_ID, "snow_" + random.nextInt(3))));
         //水花也需要重写render
         this.sprites = spriteSet;
         this.setSprite(this.sprites.get(RandomSource.create()));
@@ -38,7 +35,6 @@ public class SnowParticle extends WeatherParticle {
         }
         this.xd = (random.nextFloat() - 0.5) * this.quadSize;
         this.zd = (random.nextFloat() - 0.5)  * this.quadSize;
-//        log.info("雪粒子的速度, x: " + xd + ", z: " + zd);
         if (level.getRandom().nextBoolean()) {
             this.rotationAmount = 1;
         } else {
@@ -65,11 +61,7 @@ public class SnowParticle extends WeatherParticle {
         this.pos.set(this.x, this.y - 0.2, this.z);
         this.oRoll = this.roll;
         this.roll = this.oRoll + (level.isThundering() ? 0.02f : 0.05f) * this.rotationAmount;
-//        log.info(level.getBlockState(this.pos).getBlock().getName().getString());
-        //这个导致的掉帧?
-//        log.info(String.valueOf(VSClientGameUtils.getClientShip(this.x,this.y,this.z)));
         if (this.onGround || this.removeIfObstructed()) {
-//            log.info("雪粒子在该坐标系下被移除: " + " x: " + this.x + " y: " + this.y + " z: " + this.z);
             this.remove();
         }
     }

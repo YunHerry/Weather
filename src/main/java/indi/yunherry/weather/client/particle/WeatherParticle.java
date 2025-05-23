@@ -2,6 +2,7 @@ package indi.yunherry.weather.client.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import indi.yunherry.weather.WeatherConfig;
 import indi.yunherry.weather.renderer.ParticleRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -36,7 +37,7 @@ public class WeatherParticle extends TextureSheetParticle {
     public void tick() {
         super.tick();
         this.pos.set(this.x, this.y - 0.2, this.z);
-//        this.removeIfOOB();
+        this.removeAABB();
         if (shouldFadeOut) {
             fadeOut();
         } else if (this.age % 10 == 0) {
@@ -45,10 +46,9 @@ public class WeatherParticle extends TextureSheetParticle {
             fadeIn();
         }
     }
-    //使用这个方法后,当生成的位置在视野之外,他就会直接移除粒子
-    void removeIfOOB() {
+    void removeAABB() {
         Entity cameraEntity = Minecraft.getInstance().getCameraEntity();
-        if (cameraEntity == null || cameraEntity.distanceToSqr(this.x, this.y, this.z) > Mth.square(25)) {
+        if (cameraEntity == null || cameraEntity.distanceToSqr(this.x, this.y, this.z) > Mth.square(WeatherConfig.RENDER_RADIUS*2)) {
             shouldFadeOut = true;
         }
 
@@ -85,15 +85,6 @@ public class WeatherParticle extends TextureSheetParticle {
         } else {
             return false;
         }
-    }
-    public Quaternionf flipItTurnwaysIfBackfaced(Quaternionf quaternion, Vector3f toCamera) {
-        Vector3f normal = new Vector3f(0, 0, 1);
-        normal.rotate(quaternion).normalize();
-        float dot = normal.dot(toCamera);
-        if (dot > 0) {
-            return quaternion.mul(Axis.YP.rotation(Mth.PI));
-        }
-        else return quaternion;
     }
     public static double yLevelWindAdjustment(double y) {
         return Math.clamp(0.01, 1, (y - 64) / 40);
