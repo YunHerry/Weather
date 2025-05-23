@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.tags.FluidTags;
@@ -155,7 +156,11 @@ public class RainRenderer extends WeatherRenderer {
     }
     @Override
     public void renderWeather(LightTexture texture, float partialTick, int ticks) {
-
+        Holder<Biome> biomeHolder = level.getBiome(camPos);
+        int color = biomeHolder.value().getWaterColor();
+        float r = ((color >> 16) & 0xFF) / 255.0f;
+        float g = ((color >> 8) & 0xFF) / 255.0f;
+        float b = (color & 0xFF) / 255.0f;
         float xRot = (12.5f) * ((float) Math.PI / 180.0F);
         Vector3f direction = new Vector3f(1.0F, 0.0F, 0.0F);
         float yRot = (float) -Mth.atan2(direction.x, direction.z);
@@ -208,7 +213,7 @@ public class RainRenderer extends WeatherRenderer {
                 for (RainParticleQuad quad : entry.getValue()) {
                     stack.pushPose();
                     int packedLight = getLightColor(this.mc.level, quad.getBlockPos());
-                    quad.render(stack, builder, partialTick, packedLight, camPos.getX(), camPos.getY(), camPos.getZ(), rainIntensity, ticks);
+                    quad.render(stack, builder, partialTick, packedLight, camPos.getX(), camPos.getY(), camPos.getZ(), r,g,b);
                     stack.popPose();
                 }
                 tesselator.end();

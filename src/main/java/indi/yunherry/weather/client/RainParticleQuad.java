@@ -151,7 +151,7 @@ public class RainParticleQuad {
             this.width = this.initialWidth * Math.min(1.0F, ((float) this.lifeSpan - (float) this.tickCount) / 20.0F);
     }
 
-    public void render(PoseStack stack, VertexConsumer consumer, float partialTick, int packedLight, double camX, double camY, double camZ, float rainIntensity, int tick) {
+    public void render(PoseStack stack, VertexConsumer consumer, float partialTick, int packedLight, double camX, double camY, double camZ,float r,float g ,float b) {
         //平移到指定位置
         stack.translate(this.position.x, this.position.y, this.position.z);
         //创建旋转角度
@@ -170,10 +170,10 @@ public class RainParticleQuad {
 //        System.out.println("vOffset: " + vOffset);
         float u1 = width / 2.0F * 0.5F + 0.5F;
         float u0 = 0.5F - width / 2.0F * 0.5F;
-        consumer.vertex(mat, width / 2.0F, 0.0F, 0.0F).uv(u0, vOffset).color(1.0F, 1.0F, 1.0F, 0f).uv2(packedLight).endVertex();
-        consumer.vertex(mat, -width / 2.0F, 0.0F, 0.0F).uv(u1, vOffset).color(1.0F, 1.0F, 1.0F, 0f).uv2(packedLight).endVertex();
-        consumer.vertex(mat, -width / 2.0F, -this.length, 0.0F).uv(u1, this.length / 10.0F + vOffset).color(1.0F, 1.0F, 1.0F, alpha).uv2(packedLight).endVertex();
-        consumer.vertex(mat, width / 2.0F, -this.length, 0.0F).uv(u0, this.length / 10.0F + vOffset).color(1.0F, 1.0F, 1.0F, alpha).uv2(packedLight).endVertex();
+        consumer.vertex(mat, width / 2.0F, 0.0F, 0.0F).uv(u0, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();
+        consumer.vertex(mat, -width / 2.0F, 0.0F, 0.0F).uv(u1, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();
+        consumer.vertex(mat, -width / 2.0F, -this.length, 0.0F).uv(u1, this.length / 10.0F + vOffset).color(r, g, b, alpha).uv2(packedLight).endVertex();
+        consumer.vertex(mat, width / 2.0F, -this.length, 0.0F).uv(u0, this.length / 10.0F + vOffset).color(r, g, b, alpha).uv2(packedLight).endVertex();
     }
 
 }

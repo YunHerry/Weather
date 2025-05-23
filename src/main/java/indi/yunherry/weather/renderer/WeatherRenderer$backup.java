@@ -103,7 +103,7 @@ public class WeatherRenderer$backup extends ParticleRenderer {
                 for (RainParticleQuad quad : entry.getValue()) {
                     stack.pushPose();
                     int packedLight = getLightColor(this.mc.level, quad.getBlockPos());
-                    quad.render(stack, builder, partialTick, packedLight, camX, camY, camZ, rainIntensity, ticks);
+//                    quad.render(stack, builder, partialTick, packedLight, camX, camY, camZ, rainIntensity, ticks);
                     stack.popPose();
                 }
                 tesselator.end();
