@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import indi.yunherry.weather.RayThreadPool;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,8 +20,11 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+//TODO: Refactor
 public class RainParticle {
     public static final float MAX_LENGTH = 32.0F;
     public static final float MAX_WIDTH = 2.0F;
@@ -31,6 +35,8 @@ public class RainParticle {
         return map.build();
     });
     private final Biome.Precipitation precipitation;
+    //一个对象绑定一个已经写好的位置
+    private static final ConcurrentHashMap<RainParticle, BlockHitResult> hitResults = new ConcurrentHashMap<>();
     //在天上生成的起始位置
     private final BlockPos blockPos;
     private final Vector3f position;
@@ -44,17 +50,14 @@ public class RainParticle {
     private float widthO;
     private float width;
     private float alpha = 1.0f;
-    private BlockHitResult hitResult;
+
+    private class RainInfo {
+
+    }
 
     public BlockHitResult getHitResult() {
-        return hitResult;
+        return hitResults.get(this);
     }
-
-    public Direction getHitDirection() {
-        return hitDirection;
-    }
-
-    private Direction hitDirection;
 
     public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, int lifeSpan, float initialWidth) {
         this.precipitation = precipitation;
@@ -65,6 +68,14 @@ public class RainParticle {
         this.yRot = yRot;
         this.lifeSpan = lifeSpan;
         this.initialWidth = Math.max(0.1F, initialWidth);// Mth.clamp(initialWidth, 0.1F, MAX_WIDTH);
+        Vec3 start = new Vec3(this.position);
+        float yawRadians = -this.yRot;
+        float pitchRadians = this.xRot - (float) Math.PI / 2.0F;
+        float pitchCos = Mth.cos(pitchRadians);
+        Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
+        ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
+        BlockHitResult result = this.raycaster.apply(context);
+        RainParticle.hitResults.put(this, result);
     }
 
     public Biome.Precipitation getPrecipitation() {
@@ -79,7 +90,7 @@ public class RainParticle {
 
         return this.tickCount > this.lifeSpan;
     }
-
+    // TODO: fix:tickCount的速度跟不上帧速率
     public void tick() {
         this.tickCount++;
         alpha = 1.0f - ((float) this.tickCount / this.lifeSpan);
@@ -87,19 +98,25 @@ public class RainParticle {
         float yawRadians = -this.yRot;
         float pitchRadians = this.xRot - (float) Math.PI / 2.0F;
         float pitchCos = Mth.cos(pitchRadians);
-        Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
-        ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
-        BlockHitResult result = this.raycaster.apply(context);
-        hitDirection = result.getDirection();
-        Vec3 hit = result.getLocation();
-        this.hitResult = result;
-        this.length = (float) start.distanceTo(hit);
+        //TODO: 不是很优良的解法
+        //初始化的时候执行一次,tick后的放到异步执行
+        if (tickCount%5==0) {
+            RayThreadPool.submitTask(() -> {
+                Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
+                ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
+                BlockHitResult result = this.raycaster.apply(context);
+                RainParticle.hitResults.put(this, result);
+            });
+        }
+
+        this.length = (float) start.distanceTo(getHitResult().getLocation());
         this.widthO = this.width;
         if (this.tickCount < this.lifeSpan - 20)
             this.width = this.initialWidth * Math.min(1.0F, (float) this.tickCount / 20.0F);
         else
             this.width = this.initialWidth * Math.min(1.0F, ((float) this.lifeSpan - (float) this.tickCount) / 20.0F);
     }
+
     //TODO: 贴图左右扰动
     //TODO: 跟随风更新角度 about version: 2.1.0-beta
     public void render(PoseStack stack, VertexConsumer consumer, float partialTick, int packedLight, double camX, double camY, double camZ, float r, float g, float b) {

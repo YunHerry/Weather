@@ -37,13 +37,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.minecraft.client.renderer.LevelRenderer.getLightColor;
 
 @Renderer
 public class RainRenderer extends WeatherRenderer {
-    private final Map<BlockPos, RainParticle> precipitationQuads = new HashMap<BlockPos, RainParticle>();
+    private final Map<BlockPos, RainParticle> precipitationQuads = new ConcurrentHashMap<BlockPos, RainParticle>();
     private final Map<Biome.Precipitation, List<RainParticle>> quadsByPrecipitation = Maps.newHashMap();
     private static final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
@@ -116,7 +117,7 @@ public class RainRenderer extends WeatherRenderer {
                 double baseX = downPos.getX() + 0.5;
                 double baseY = downPos.getY() + maxSurfaceY;
                 double baseZ = downPos.getZ() + 0.5;
-                Direction hitFace = value.getHitDirection();
+                Direction hitFace = value.getHitResult().getDirection();
                 final double edgeOffset = 0.30; // 外侧偏移量增大防止Z-fighting
                 final double randomSpread = 0.4; // 表面随机散布范围
                 switch (hitFace) {

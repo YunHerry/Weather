@@ -1,6 +1,7 @@
 package indi.yunherry.weather.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import indi.yunherry.weather.RayThreadPool;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.renderer.ParticleRenderer;
 import indi.yunherry.weather.renderer.WeatherRenderer;
