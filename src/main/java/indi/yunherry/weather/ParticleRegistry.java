@@ -37,4 +37,5 @@ public class ParticleRegistry{
     public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MOD_ID);
     public static final RegistryObject<SimpleParticleType> SNOW = PARTICLES.register("snow", ()->new SimpleParticleType(true));
     public static final RegistryObject<SimpleParticleType> WIND = PARTICLES.register("wind", ()->new SimpleParticleType(true));
+    public static final RegistryObject<SimpleParticleType> RIPPLE = PARTICLES.register("ripple", ()->new SimpleParticleType(true));
 }

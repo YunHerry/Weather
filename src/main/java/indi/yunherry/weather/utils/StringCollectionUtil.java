@@ -1,5 +1,12 @@
 package indi.yunherry.weather.utils;
 
+import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.util.Mth;
+import org.joml.Math;
+
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;

@@ -15,7 +15,6 @@ import static indi.yunherry.weather.WorldContext.windDirection;
 public class WindRenderer extends ParticleRenderer {
     @Override
     public void tick() {
-
     }
 
     @Override

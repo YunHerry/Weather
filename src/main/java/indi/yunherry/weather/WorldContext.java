@@ -1,7 +1,7 @@
 package indi.yunherry.weather;
 
 import indi.yunherry.weather.factory.bean.RendererEngine;
-import indi.yunherry.weather.renderer.WeatherRenderer$backup;
+import indi.yunherry.weather.renderer.WeatherRenderer;
 import net.minecraft.util.RandomSource;
 
 import java.util.ArrayList;
@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WorldContext {
-    public final static WeatherRenderer$backup renderer = WeatherRenderer$backup.instance;
     public static WeatherType nowWeather = WeatherType.NONE;
     public static WindDirectionType windDirection = WindDirectionType.NONE;
     public static ThreadLocalRandom random = ThreadLocalRandom.current();

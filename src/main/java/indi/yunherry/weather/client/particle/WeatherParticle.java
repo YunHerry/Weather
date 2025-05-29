@@ -8,6 +8,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -32,7 +33,6 @@ public class WeatherParticle extends TextureSheetParticle {
         this.temperature = level.getBiome(this.pos).value().getBaseTemperature();
         ParticleRenderer.particleCount++;
     }
-
     @Override
     public void tick() {
         super.tick();

@@ -8,7 +8,7 @@ import com.mojang.blaze3d.vertex.*;
 import indi.yunherry.weather.ParticleRegistry;
 import indi.yunherry.weather.WeatherType;
 import indi.yunherry.weather.WorldContext;
-import indi.yunherry.weather.client.RainParticleQuad;
+import indi.yunherry.weather.client.particle.RainParticle;
 import indi.yunherry.weather.utils.ShaderUtils;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -66,17 +66,17 @@ public class WeatherRenderer$backup extends ParticleRenderer {
     private static final int HASH_MASK = 0xFFFF; // 控制哈希范围
     private static final float RAIN_SIZE_SCALE = 0.1f; // 控制偏移幅度
 
-    public Map<BlockPos, RainParticleQuad> getPrecipitationQuads() {
+    public Map<BlockPos, RainParticle> getPrecipitationQuads() {
         return precipitationQuads;
     }
 
-    private final Map<BlockPos, RainParticleQuad> precipitationQuads = new HashMap<BlockPos, RainParticleQuad>();
+    private final Map<BlockPos, RainParticle> precipitationQuads = new HashMap<BlockPos, RainParticle>();
 
-    public Map<Biome.Precipitation, List<RainParticleQuad>> getQuadsByPrecipitation() {
+    public Map<Biome.Precipitation, List<RainParticle>> getQuadsByPrecipitation() {
         return quadsByPrecipitation;
     }
 
-    private final Map<Biome.Precipitation, List<RainParticleQuad>> quadsByPrecipitation = Maps.newHashMap();
+    private final Map<Biome.Precipitation, List<RainParticle>> quadsByPrecipitation = Maps.newHashMap();
     private static final RandomSource random = RandomSource.create();
     @Deprecated(since = "v1.5")
     //渲染雨
@@ -96,11 +96,11 @@ public class WeatherRenderer$backup extends ParticleRenderer {
             RenderSystem.disableCull();
             RenderSystem.setShader(GameRenderer::getParticleShader);
             for (var entry : this.quadsByPrecipitation.entrySet()) {
-                RenderSystem.setShaderTexture(0, RainParticleQuad.TEXTURE_BY_PRECIPITATION.get(entry.getKey()));
+                RenderSystem.setShaderTexture(0, RainParticle.TEXTURE_BY_PRECIPITATION.get(entry.getKey()));
                 builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
                 PoseStack stack = new PoseStack();
                 stack.translate(-camX, -camY, -camZ);
-                for (RainParticleQuad quad : entry.getValue()) {
+                for (RainParticle quad : entry.getValue()) {
                     stack.pushPose();
                     int packedLight = getLightColor(this.mc.level, quad.getBlockPos());
 //                    quad.render(stack, builder, partialTick, packedLight, camX, camY, camZ, rainIntensity, ticks);
@@ -170,7 +170,7 @@ public class WeatherRenderer$backup extends ParticleRenderer {
                             if (!this.precipitationQuads.containsKey(pos)) {
                                 if (blockRandom.nextInt(100) <= 1) {
                                     float widthModifier = precipitation == Biome.Precipitation.SNOW ? 4.0F : 2.0F;
-                                    RainParticleQuad quad = new RainParticleQuad(precipitation, this.mc.level::clip, pos, xRot + this.random.nextFloat() * 0.1F, yRot + this.random.nextFloat() * 0.1F, 60 + this.random.nextInt(60), rainIntensity * widthModifier);
+                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + this.random.nextFloat() * 0.1F, yRot + this.random.nextFloat() * 0.1F, 60 + this.random.nextInt(60), rainIntensity * widthModifier);
 //                                    mc.level.addParticle(ParticleRegistry.SNOW.get(),camX - d0 + 0.5D, camY, camZ - d1 + 0.5D,0,1,0);
                                     this.precipitationQuads.put(pos, quad);
 
@@ -185,7 +185,7 @@ public class WeatherRenderer$backup extends ParticleRenderer {
             while (rain.hasNext()) {
                 var entry = rain.next();
                 Level levelreader = this.mc.level;
-                RainParticleQuad quad = entry.getValue();
+                RainParticle quad = entry.getValue();
                 //渲染雨滴的开始位置
                 BlockPos pos = entry.getKey();
                 //是否超出视野,或者是是否已经落地,没有就继续执行
@@ -231,71 +231,71 @@ public class WeatherRenderer$backup extends ParticleRenderer {
             }
         }
         if (WorldContext.nowWeather == WeatherType.SNOW) return;
-        this.precipitationQuads.forEach((key, value) -> {
-            Level levelreader = this.mc.level;
-            BlockPos downPos = value.getDownBlockPos();
-            if (downPos != null) {
-                BlockState blockstate = levelreader.getBlockState(downPos);
-                FluidState fluidstate = levelreader.getFluidState(downPos);
-                VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
-                double d0 = random.nextDouble();
-                double d1 = random.nextDouble();
-                double d2 = voxelshape.max(Direction.Axis.Y, d0, d1);
-                double d3 = (double) fluidstate.getHeight(levelreader, downPos);
-                double d4 = Math.max(d2, d3);
-                ParticleOptions particleoptions = !fluidstate.is(FluidTags.LAVA) && !blockstate.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockstate) ? ParticleTypes.RAIN : ParticleTypes.SMOKE;
-                // 基础坐标（方块中心）
-                // 获取方块顶部表面高度（考虑碰撞体积）
-                double surfaceHeight = voxelshape.max(Direction.Axis.Y, random.nextDouble(), random.nextDouble());
-// 考虑流体高度（如水上表面）
-                double fluidHeight = fluidstate.getHeight(levelreader, downPos);
-                double maxSurfaceY = Math.max(surfaceHeight, fluidHeight);
-                double baseX = downPos.getX() + 0.5;
-                double baseY = downPos.getY() + maxSurfaceY;
-                double baseZ = downPos.getZ() + 0.5;
-
-// 碰撞面方向处理
-                Direction hitFace = value.getHitDirection();
-                final double edgeOffset = 0.15; // 外侧偏移量增大防止Z-fighting
-                final double randomSpread = 0.4; // 表面随机散布范围
-
-// 根据碰撞面调整坐标
-                switch (hitFace) {
-                    case UP -> {
-                        // 顶部表面：在XY平面随机散布，Y轴位于表面上方
-                        baseX += (random.nextDouble() - 0.5) * randomSpread;
-                        baseZ += (random.nextDouble() - 0.5) * randomSpread;
-                        baseY += edgeOffset; // 确保在方块上方
-                    }
-                    case DOWN -> {
-                        // 底部不生成粒子
-                        return;
-                    }
-                    case NORTH -> {
-                        // 北侧：Z轴负方向偏移，XY平面随机
-                        baseZ = downPos.getZ() - edgeOffset;
-                        baseX += random.nextDouble() * randomSpread;
-                    }
-                    case SOUTH -> {
-                        // 南侧：Z轴正方向偏移
-                        baseZ = downPos.getZ() + 1 + edgeOffset;
-                        baseX += random.nextDouble() * randomSpread;
-                    }
-                    case EAST -> {
-                        // 东侧：X轴正方向偏移
-                        baseX = downPos.getX() + 1 + edgeOffset;
-                        baseZ += random.nextDouble() * randomSpread;
-                    }
-                    case WEST -> {
-                        // 西侧：X轴负方向偏移
-                        baseX = downPos.getX() - edgeOffset;
-                        baseZ += random.nextDouble() * randomSpread;
-                    }
-                }
-
-                levelreader.addParticle(particleoptions, baseX, baseY + (hitFace == Direction.UP ? 0 : random.nextDouble() * 0.3), baseZ, 0.0, 0.0, 0.0);
-            }
-        });
+//        this.precipitationQuads.forEach((key, value) -> {
+//            Level levelreader = this.mc.level;
+//            BlockPos downPos = value.getDownBlockPos();
+//            if (downPos != null) {
+//                BlockState blockstate = levelreader.getBlockState(downPos);
+//                FluidState fluidstate = levelreader.getFluidState(downPos);
+//                VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
+//                double d0 = random.nextDouble();
+//                double d1 = random.nextDouble();
+//                double d2 = voxelshape.max(Direction.Axis.Y, d0, d1);
+//                double d3 = (double) fluidstate.getHeight(levelreader, downPos);
+//                double d4 = Math.max(d2, d3);
+//                ParticleOptions particleoptions = !fluidstate.is(FluidTags.LAVA) && !blockstate.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockstate) ? ParticleTypes.RAIN : ParticleTypes.SMOKE;
+//                // 基础坐标（方块中心）
+//                // 获取方块顶部表面高度（考虑碰撞体积）
+//                double surfaceHeight = voxelshape.max(Direction.Axis.Y, random.nextDouble(), random.nextDouble());
+//// 考虑流体高度（如水上表面）
+//                double fluidHeight = fluidstate.getHeight(levelreader, downPos);
+//                double maxSurfaceY = Math.max(surfaceHeight, fluidHeight);
+//                double baseX = downPos.getX() + 0.5;
+//                double baseY = downPos.getY() + maxSurfaceY;
+//                double baseZ = downPos.getZ() + 0.5;
+//
+//// 碰撞面方向处理
+//                Direction hitFace = value.getHitDirection();
+//                final double edgeOffset = 0.15; // 外侧偏移量增大防止Z-fighting
+//                final double randomSpread = 0.4; // 表面随机散布范围
+//
+//// 根据碰撞面调整坐标
+//                switch (hitFace) {
+//                    case UP -> {
+//                        // 顶部表面：在XY平面随机散布，Y轴位于表面上方
+//                        baseX += (random.nextDouble() - 0.5) * randomSpread;
+//                        baseZ += (random.nextDouble() - 0.5) * randomSpread;
+//                        baseY += edgeOffset; // 确保在方块上方
+//                    }
+//                    case DOWN -> {
+//                        // 底部不生成粒子
+//                        return;
+//                    }
+//                    case NORTH -> {
+//                        // 北侧：Z轴负方向偏移，XY平面随机
+//                        baseZ = downPos.getZ() - edgeOffset;
+//                        baseX += random.nextDouble() * randomSpread;
+//                    }
+//                    case SOUTH -> {
+//                        // 南侧：Z轴正方向偏移
+//                        baseZ = downPos.getZ() + 1 + edgeOffset;
+//                        baseX += random.nextDouble() * randomSpread;
+//                    }
+//                    case EAST -> {
+//                        // 东侧：X轴正方向偏移
+//                        baseX = downPos.getX() + 1 + edgeOffset;
+//                        baseZ += random.nextDouble() * randomSpread;
+//                    }
+//                    case WEST -> {
+//                        // 西侧：X轴负方向偏移
+//                        baseX = downPos.getX() - edgeOffset;
+//                        baseZ += random.nextDouble() * randomSpread;
+//                    }
+//                }
+//
+//                levelreader.addParticle(particleoptions, baseX, baseY + (hitFace == Direction.UP ? 0 : random.nextDouble() * 0.3), baseZ, 0.0, 0.0, 0.0);
+//            }
+//        });
     }
 
     @Override

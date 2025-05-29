@@ -1,78 +1,54 @@
 package indi.yunherry.weather.client.particle;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import indi.yunherry.weather.WorldContext;
+import indi.yunherry.weather.renderer.ParticleRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
-import java.util.Random;
-
-import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-public class WindParticle extends TextureSheetParticle {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class RippleParticle extends WeatherParticle {
     private final SpriteSet sprites;
     private final Quaternionf rotation = new Quaternionf();
     private final Matrix4f transformMatrix = new Matrix4f();
-    private final float rotationY;
-    public static final ParticleRenderType CUSTOM_SHEET = new ParticleRenderType() {
-        @Override
-        public void begin(BufferBuilder builder, TextureManager texture) {
-            RenderSystem.disableCull();
-            RenderSystem.enableBlend();
-            RenderSystem.blendFunc(
-                    GlStateManager.SourceFactor.SRC_ALPHA,
-                    GlStateManager.DestFactor.ONE
-            );
-            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
-        }
-
-        @Override
-        public void end(Tesselator tesselator) {
-            tesselator.end();
-            RenderSystem.enableCull();
-            RenderSystem.defaultBlendFunc();
-        }
-    };
-
-
-    public WindParticle(ClientLevel world, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, SpriteSet p_107724_) {
-        super(world, x, y, z, xSpeed, ySpeed, zSpeed);
+    private static final List<Long> key = new ArrayList<>(10);
+    public static Long getXYZKey(double x, double y, double z) {
+        return Double.doubleToLongBits(x) + Double.doubleToLongBits(y) + Double.doubleToLongBits(z);
+    }
+    public static boolean isContain(double x, double y, double z) {
+        return key.contains(getXYZKey(x, y, z));
+    }
+    public RippleParticle(ClientLevel world, double x, double y, double z, SpriteSet p_107724_) {
+        super(world, x, y, z);
         this.sprites = p_107724_;
-        this.scale(20.5F + random.nextInt(60));
-        this.lifetime = 50;
-        this.hasPhysics = true;
+        this.scale(random.nextFloat()+1);
+        this.lifetime = 20;
+//        this.hasPhysics = true;
         this.setPos(x, y, z);
         this.setSpriteFromAge(p_107724_);
-        this.setAlpha(0.5F);
-        this.rotationY = switch (WorldContext.windDirection) {
-            case NORTH -> 0;
-            case WEST -> 270;
-            case EAST -> 90;
-            case SOUTH -> 180;
-            case NONE -> 114514;
-        } + (random.nextInt(40) - 20);
+//        this.setAlpha(0.5F);
+        key.add(getXYZKey(x, y, z));
     }
-
-    @Override
-    public @NotNull ParticleRenderType getRenderType() {
-        return CUSTOM_SHEET;
-    }
-
     public void tick() {
         super.tick();
         this.setSpriteFromAge(this.sprites);
-
         if (this.alpha == 0) remove();
+    }
+    @Override
+    public void remove() {
+        if (this.isAlive()) key.remove(getXYZKey(x, y, z));
+        super.remove();
     }
 
     @Override
@@ -81,10 +57,10 @@ public class WindParticle extends TextureSheetParticle {
         Vec3 camPos = camera.getPosition();
         float size = this.getQuadSize(partialTicks);
         int packedLight = this.getLightColor(partialTicks);
-        float alpha = 1;
+        float alpha = (float) (0.6f * Math.sin(Math.PI * this.age / 20));;
         //180是南风 90是东风 0是北风
         rotation.identity()
-                .rotateY((float) Math.toRadians(-this.rotationY + 180));
+                .rotateX((float) Math.toRadians(90));
         // 3. 构建变换矩阵
         transformMatrix.identity()
                 .translation(
@@ -129,6 +105,7 @@ public class WindParticle extends TextureSheetParticle {
                 .endVertex();
     }
 
+
     @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
@@ -138,12 +115,7 @@ public class WindParticle extends TextureSheetParticle {
         }
 
         public Particle createParticle(SimpleParticleType type, ClientLevel world, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-            Random random = new Random();
-            int d = random.nextInt(30) + 40;
-            double r = random.nextDouble() * Math.PI * 2;
-            double newY = y + random.nextInt(15) + random.nextInt(15);
-
-            return new WindParticle(world, (Math.cos(r) * d) + x, newY, (Math.sin(r) * d) + z, xSpeed, ySpeed, zSpeed, this.sprite);
+            return new RippleParticle(world, x, y, z, this.sprite);
         }
     }
 }

@@ -1,21 +1,15 @@
-package indi.yunherry.weather.client;
+package indi.yunherry.weather.client.particle;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import indi.yunherry.weather.ParticleRegistry;
-import indi.yunherry.weather.WeatherType;
-import indi.yunherry.weather.WorldContext;
 import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -23,15 +17,11 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.function.Function;
 
-import static net.minecraft.client.renderer.LevelRenderer.getLightColor;
-
-public class RainParticleQuad {
+public class RainParticle {
     public static final float MAX_LENGTH = 32.0F;
     public static final float MAX_WIDTH = 2.0F;
     public static final Map<Biome.Precipitation, ResourceLocation> TEXTURE_BY_PRECIPITATION = Util.make(() -> {
@@ -40,8 +30,8 @@ public class RainParticleQuad {
         map.put(Biome.Precipitation.SNOW, new ResourceLocation("textures/environment/snow.png"));
         return map.build();
     });
-    private static final Logger log = LoggerFactory.getLogger(RainParticleQuad.class);
     private final Biome.Precipitation precipitation;
+    //在天上生成的起始位置
     private final BlockPos blockPos;
     private final Vector3f position;
     private final int lifeSpan;
@@ -54,13 +44,11 @@ public class RainParticleQuad {
     private float widthO;
     private float width;
     private float alpha = 1.0f;
-    private BlockPos downBlockPos;
+    private BlockHitResult hitResult;
 
-    public Vec3 getDownPos() {
-        return downPos;
+    public BlockHitResult getHitResult() {
+        return hitResult;
     }
-
-    private Vec3 downPos;
 
     public Direction getHitDirection() {
         return hitDirection;
@@ -68,9 +56,7 @@ public class RainParticleQuad {
 
     private Direction hitDirection;
 
-    public RainParticleQuad(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, int lifeSpan, float initialWidth) {
-        if (precipitation == Biome.Precipitation.NONE)
-            throw new IllegalArgumentException("Cannot be NONE precipitation type");
+    public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, int lifeSpan, float initialWidth) {
         this.precipitation = precipitation;
         this.raycaster = raycaster;
         this.blockPos = position;
@@ -85,44 +71,13 @@ public class RainParticleQuad {
         return this.precipitation;
     }
 
-    public Vector3f getPos() {
-        return this.position;
-    }
-
     public BlockPos getBlockPos() {
         return this.blockPos;
     }
 
-    public float getLength() {
-        return this.length;
-    }
-
-    public float getXRot() {
-        return this.xRot;
-    }
-
-    public void setXRot(float rot) {
-        this.xRot = rot;
-    }
-
-    public float getYRot() {
-        return this.yRot;
-    }
-
-    public void setYRot(float rot) {
-        this.yRot = rot;
-    }
-
-    public int getTickCount() {
-        return this.tickCount;
-    }
-
     public boolean isDead() {
-        return this.tickCount > this.lifeSpan;
-    }
 
-    public BlockPos getDownBlockPos() {
-        return this.downBlockPos;
+        return this.tickCount > this.lifeSpan;
     }
 
     public void tick() {
@@ -137,12 +92,7 @@ public class RainParticleQuad {
         BlockHitResult result = this.raycaster.apply(context);
         hitDirection = result.getDirection();
         Vec3 hit = result.getLocation();
-        if (result.getType() != HitResult.Type.MISS) {
-            this.downBlockPos = result.getBlockPos();
-            this.downPos = hit;
-        } else {
-            this.downBlockPos = null;
-        }
+        this.hitResult = result;
         this.length = (float) start.distanceTo(hit);
         this.widthO = this.width;
         if (this.tickCount < this.lifeSpan - 20)
@@ -150,8 +100,9 @@ public class RainParticleQuad {
         else
             this.width = this.initialWidth * Math.min(1.0F, ((float) this.lifeSpan - (float) this.tickCount) / 20.0F);
     }
-
-    public void render(PoseStack stack, VertexConsumer consumer, float partialTick, int packedLight, double camX, double camY, double camZ,float r,float g ,float b) {
+    //TODO: 贴图左右扰动
+    //TODO: 跟随风更新角度 about version: 2.1.0-beta
+    public void render(PoseStack stack, VertexConsumer consumer, float partialTick, int packedLight, double camX, double camY, double camZ, float r, float g, float b) {
         //平移到指定位置
         stack.translate(this.position.x, this.position.y, this.position.z);
         //创建旋转角度
