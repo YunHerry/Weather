@@ -39,7 +39,7 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.minecraft.client.renderer.LevelRenderer.getLightColor;
-
+//TODO: Refactor
 @Renderer
 public class RainRenderer extends WeatherRenderer {
     private final Map<BlockPos, RainParticle> precipitationQuads = Maps.newHashMap();
@@ -70,8 +70,8 @@ public class RainRenderer extends WeatherRenderer {
         boolean isRainPrecipitation = biome.getPrecipitationAt(camPos) == Biome.Precipitation.RAIN;
         if (isRainPrecipitation) {
             float rainIntensity = this.mc.level.getRainLevel(1.0F);
-            //框定范围
             int lifeSpan = level.isThundering() ? 20 : 10;
+            //框定范围
 
             Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
             if (rainIntensity > 0.0F && biome.hasPrecipitation()) {
@@ -111,6 +111,7 @@ public class RainRenderer extends WeatherRenderer {
                 continue;
             }
 
+            //粒子生成不正确,侧面
             if (isRainPrecipitation) {
                 Level levelreader = this.mc.level;
                 BlockHitResult hitResult = quad.getHitResult();
@@ -190,7 +191,6 @@ public class RainRenderer extends WeatherRenderer {
         float g = ((color >> 8) & 0xFF) / 255.0f;
         float b = (color & 0xFF) / 255.0f;
         if (!level.isRaining()) return;
-        float rainIntensity = mc.level.getRainLevel(0.0F);
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder builder = tesselator.getBuilder();
         RenderSystem.depthMask(Minecraft.useShaderTransparency() || ShaderUtils.areShadersRunning());
