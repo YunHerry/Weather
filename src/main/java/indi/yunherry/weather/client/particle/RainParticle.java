@@ -85,8 +85,7 @@ public class RainParticle {
     public boolean isDead() {
         return this.tickCount > this.lifeSpan;
     }
-    // FIXME: tickCount的速度跟不上帧速率
-    //  原因是目前 tick 方法每帧执行
+
     public void tick() {
         this.tickCount++;
         alpha = 1.0f - ((float) this.tickCount / this.lifeSpan);
@@ -95,15 +94,12 @@ public class RainParticle {
         float pitchRadians = this.xRot - (float) Math.PI / 2.0F;
         //TODO: 不是很优良的解法
         //初始化的时候执行一次,tick后的放到异步执行
-        if (tickCount%5==0) {
-            // 每 5 帧执行一次
-            RayThreadPool.submitTask(() -> {
-                float pitchCos = Mth.cos(pitchRadians);
-                Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
-                ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
-                hitResult.setOpaque(this.raycaster.apply(context));
-            });
-        }
+        RayThreadPool.submitTask(() -> {
+            float pitchCos = Mth.cos(pitchRadians);
+            Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
+            ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
+            hitResult.setOpaque(this.raycaster.apply(context));
+        });
 
         this.length = (float) start.distanceTo(getHitResult().getLocation());
         this.widthO = this.width;
@@ -128,8 +124,7 @@ public class RainParticle {
         stack.mulPose(inverseRotation.invert());
         stack.mulPose(Axis.YP.rotation(angleToCam));
         Matrix4f mat = stack.last().pose();
-        //-0.1f太快
-        float vOffset = ((float) this.tickCount + partialTick) * -0.01F;
+        float vOffset = ((float) this.tickCount + partialTick) * -0.1F;
         float width = Mth.lerp(partialTick, this.widthO, this.width);
 //        System.out.println("vOffset: " + vOffset);
         float u1 = width / 2.0F * 0.5F + 0.5F;
