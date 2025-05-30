@@ -17,11 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static indi.yunherry.weather.WorldContext.random;
 
-//TODO 该类有混入后会报错
 @Mixin(Particle.class)
 public abstract class MixinBaseAshSmokeParticle {
-//    @Shadow(remap = false) @Final protected RandomSource random;
-//
 
     @ModifyVariable(method = "move(DDD)V", at = @At("HEAD"), ordinal = 0, argsOnly = true)
     private double addWindDx(double dx){

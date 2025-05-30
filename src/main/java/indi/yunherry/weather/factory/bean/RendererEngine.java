@@ -7,15 +7,15 @@ import net.minecraftforge.forgespi.language.ModFileScanData;
 import java.lang.reflect.InvocationTargetException;
 
 public class RendererEngine extends Engine {
-    private boolean isEnableRandomTick;
-    private boolean isConditionalRendering;
+    private final boolean isEnableRandomTick;
+    private final boolean isConditionalRendering;
     private final ParticleRenderer renderer;
     public RendererEngine(ParticleRenderer renderer,boolean isConditionalRendering, boolean isEnableRandomTick) {
         this.isConditionalRendering = isConditionalRendering;
         this.renderer = renderer;
         this.isEnableRandomTick = isEnableRandomTick;
     }
-
+    @SuppressWarnings("unchecked")
     public RendererEngine(ModFileScanData.AnnotationData annotationData) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         super();
         Class<ParticleRenderer> clazz = (Class<ParticleRenderer>) Class.forName(annotationData.clazz().getClassName());

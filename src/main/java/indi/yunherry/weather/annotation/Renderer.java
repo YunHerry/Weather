@@ -1,6 +1,5 @@
 package indi.yunherry.weather.annotation;
 
-import indi.yunherry.weather.constant.enums.ScanTypeEnum;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
