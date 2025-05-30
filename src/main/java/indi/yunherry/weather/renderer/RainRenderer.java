@@ -69,8 +69,9 @@ public class RainRenderer extends WeatherRenderer {
         Biome biome = this.mc.level.getBiome(camPos).value();
         boolean isRainPrecipitation = biome.getPrecipitationAt(camPos) == Biome.Precipitation.RAIN;
         if (isRainPrecipitation) {
-            float rainIntensity = this.mc.level.getRainLevel(0.0F);
+            float rainIntensity = this.mc.level.getRainLevel(1.0F);
             //框定范围
+            int lifeSpan = level.isThundering() ? 20 : 10;
 
             Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
             if (rainIntensity > 0.0F && biome.hasPrecipitation()) {
@@ -85,7 +86,7 @@ public class RainRenderer extends WeatherRenderer {
                             if (!this.precipitationQuads.containsKey(pos)) {
                                 if (blockRandom.nextInt(100) <= 1) {
                                     float widthModifier = 2.0F;
-                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F, 60 + random.nextInt(60), rainIntensity * widthModifier);
+                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F, lifeSpan + random.nextInt(lifeSpan), rainIntensity * widthModifier);
                                     this.precipitationQuads.put(pos, quad);
                                     this.quadsByPrecipitation.computeIfAbsent(precipitation, p -> Lists.newArrayList()).add(quad);
                                 }
@@ -121,10 +122,6 @@ public class RainRenderer extends WeatherRenderer {
                     FluidState fluidstate = levelreader.getFluidState(downPos);
                     VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
                     ThreadLocalRandom random = ThreadLocalRandom.current();
-//                    double d0 = random.nextDouble();
-//                    double d1 = random.nextDouble();
-//                    double d2 = voxelshape.max(Direction.Axis.Y, d0, d1);
-//                    double d3 = fluidstate.getHeight(levelreader, downPos);
                     ParticleOptions particleoptions = !fluidstate.is(FluidTags.LAVA) && !blockstate.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockstate) ? ParticleTypes.RAIN : ParticleTypes.SMOKE;
                     double surfaceHeight = voxelshape.max(Direction.Axis.Y, random.nextDouble(), random.nextDouble());
                     double fluidHeight = fluidstate.getHeight(levelreader, downPos);

@@ -7,23 +7,17 @@ import com.mojang.math.Axis;
 import indi.yunherry.weather.RayThreadPool;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -89,7 +83,6 @@ public class RainParticle {
     }
 
     public boolean isDead() {
-
         return this.tickCount > this.lifeSpan;
     }
     public void tick() {
@@ -98,10 +91,10 @@ public class RainParticle {
         Vec3 start = new Vec3(this.position);
         float yawRadians = -this.yRot;
         float pitchRadians = this.xRot - (float) Math.PI / 2.0F;
-        float pitchCos = Mth.cos(pitchRadians);
         //TODO: 不是很优良的解法
         //初始化的时候执行一次,tick后的放到异步执行
         RayThreadPool.submitTask(() -> {
+            float pitchCos = Mth.cos(pitchRadians);
             Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
             ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
             hitResult.setOpaque(this.raycaster.apply(context));
