@@ -144,7 +144,7 @@ public class RainRenderer extends WeatherRenderer {
                         }
                         case DOWN -> {
                             // 底部不生成粒子
-                            return;
+                            break;
                         }
                         case NORTH -> {
                             // 北侧：Z轴负方向偏移，XY平面随机
