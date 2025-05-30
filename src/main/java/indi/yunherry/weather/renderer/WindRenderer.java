@@ -17,9 +17,8 @@ public class WindRenderer extends ParticleRenderer {
     public void tick() {
         if (level.isRaining()) return;
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        if (random.nextInt(100) >= 95) {
+        if (random.nextInt(100) >= 92) {
             Biome biome = level.getBiome(camPos).value();
-            if (biome.getPrecipitationAt(camPos) != Biome.Precipitation.SNOW) return;
             if (windDirection != WindDirectionType.NONE) {
                 level.addParticle(ParticleRegistry.WIND.get(), camPos.getX() + random.nextDouble() - 0.5, camPos.getY() + random.nextDouble() - 0.6, camPos.getZ() + random.nextDouble() - 0.5, 0.0, 0.0, 0.0);
 //                this.mc.level.addParticle(ParticleRegistry.WIND.get(), 517, 94, 210, 0.0, 0.0, 0.0);
@@ -34,7 +33,6 @@ public class WindRenderer extends ParticleRenderer {
         } else {
             windDirection = directionTypes[ThreadLocalRandom.current().nextInt(directionTypes.length)];
         }
-
 
     }
 
