@@ -8,7 +8,8 @@
   "mixins": [
     "InvokerEntityShipCollisionUtils",
     "MixinCommands",
-    "MixinLevelRenderer"
+    "MixinLevelRenderer",
+    "MixinSeagrass"
   ],
   "client": [
     "MixinBaseAshSmokeParticle",

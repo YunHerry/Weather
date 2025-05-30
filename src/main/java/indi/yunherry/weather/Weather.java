@@ -52,7 +52,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
-//TODO: 备忘,水草靠近水面的时候会产生波纹
+//TODO: 备忘,水草/荷叶靠近水面的时候会产生波纹
+//TODO: 备忘,手上拿着火把会产生烟雾
+//TODO: 围绕碰撞体积生成白边
 @SuppressWarnings("deprecation")
 @Mod(Weather.MOD_ID)
 @FrameApplication

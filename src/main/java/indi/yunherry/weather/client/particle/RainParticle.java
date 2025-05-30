@@ -87,10 +87,12 @@ public class RainParticle {
     }
 
     public boolean isDead() {
-
         return this.tickCount > this.lifeSpan;
     }
-    // TODO: fix:tickCount的速度跟不上帧速率
+    public void remove() {
+        hitResults.remove(this);
+    }
+    // TODO: fix:tickCount的速度跟不上帧速率?
     public void tick() {
         this.tickCount++;
         alpha = 1.0f - ((float) this.tickCount / this.lifeSpan);
