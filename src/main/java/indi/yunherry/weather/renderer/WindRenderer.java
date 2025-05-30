@@ -17,7 +17,7 @@ public class WindRenderer extends ParticleRenderer {
     public void tick() {
         if (level.isRaining()) return;
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        if (random.nextInt(100) >= 90) {
+        if (random.nextInt(100) >= 95) {
             Biome biome = level.getBiome(camPos).value();
             if (biome.getPrecipitationAt(camPos) != Biome.Precipitation.SNOW) return;
             if (windDirection != WindDirectionType.NONE) {
