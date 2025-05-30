@@ -53,7 +53,7 @@ public class RainParticle {
     }
 
     public BlockHitResult getHitResult() {
-        return hitResult.getOpaque();
+        return hitResult.getAcquire();
     }
 
     public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, int lifeSpan, float initialWidth) {
@@ -98,7 +98,7 @@ public class RainParticle {
             float pitchCos = Mth.cos(pitchRadians);
             Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
             ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
-            hitResult.setOpaque(this.raycaster.apply(context));
+            hitResult.setRelease(this.raycaster.apply(context));
         });
 
         this.length = (float) start.distanceTo(getHitResult().getLocation());

@@ -72,7 +72,7 @@ public class RainRenderer extends WeatherRenderer {
             float rainIntensity = this.mc.level.getRainLevel(1.0F);
             //TODO isThundering?
 //            int lifeSpanBase = level.isThundering() ? 20 : 10;
-            int lifeSpanBase = 10;
+            int lifeSpanBase = 20;
             //框定范围
 
             Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
@@ -110,10 +110,13 @@ public class RainRenderer extends WeatherRenderer {
             if (!box.contains(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) || quad.isDead()) {
                 this.quadsByPrecipitation.get(quad.getPrecipitation()).remove(quad);
                 rain.remove();
+
                 continue;
             }
+            quad.tick();
 
             //粒子生成不正确,侧面
+            SpawnParticles:
             if (isRainPrecipitation) {
                 Level levelreader = this.mc.level;
                 BlockHitResult hitResult = quad.getHitResult();
@@ -132,7 +135,7 @@ public class RainRenderer extends WeatherRenderer {
                     double baseX = downPos.getX() + 0.5;
                     double baseY = downPos.getY() + maxSurfaceY;
                     double baseZ = downPos.getZ() + 0.5;
-                    Direction hitFace = quad.getHitResult().getDirection();
+                    Direction hitFace = hitResult.getDirection();
                     final double edgeOffset = 0.30; // 外侧偏移量增大防止Z-fighting
                     final double randomSpread = 0.4; // 表面随机散布范围
                     switch (hitFace) {
@@ -144,7 +147,7 @@ public class RainRenderer extends WeatherRenderer {
                         }
                         case DOWN -> {
                             // 底部不生成粒子
-                            break;
+                            break SpawnParticles;
                         }
                         case NORTH -> {
                             // 北侧：Z轴负方向偏移，XY平面随机
@@ -175,7 +178,6 @@ public class RainRenderer extends WeatherRenderer {
                 }
             }
 
-            quad.tick();
         }
 
     }
