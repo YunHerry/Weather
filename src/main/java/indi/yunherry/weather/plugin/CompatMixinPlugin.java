@@ -25,7 +25,12 @@ public class CompatMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if(VS_MIXIN_PARTICLE.equals(mixinClassName) || VS_MIXIN_ACCESS.equals(mixinClassName)) {
+        if (VS_MIXIN_PARTICLE.equals(mixinClassName)) {
+
+            return FMLLoader.getLoadingModList().getModFileById(VS) != null &&
+                   FMLLoader.getLoadingModList().getModFileById("asyncparticles") == null;
+        }
+        if (VS_MIXIN_ACCESS.equals(mixinClassName)) {
 
             return FMLLoader.getLoadingModList().getModFileById(VS) != null;
         }
