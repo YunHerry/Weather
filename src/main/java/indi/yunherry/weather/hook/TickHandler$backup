@@ -12,6 +12,8 @@ public class TickHandler {
 
     @SubscribeEvent
     public static void onTick(TickEvent.ClientTickEvent event) {
-        ParticleRenderer.update();
+        if (event.phase == TickEvent.Phase.END){
+            ParticleRenderer.update();
+        }
     }
 }

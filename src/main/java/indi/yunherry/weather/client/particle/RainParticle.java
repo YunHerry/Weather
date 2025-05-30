@@ -19,9 +19,12 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 //TODO: Refactor
@@ -36,7 +39,7 @@ public class RainParticle {
     });
     private final Biome.Precipitation precipitation;
     //一个对象绑定一个已经写好的位置
-    private static final ConcurrentHashMap<RainParticle, BlockHitResult> hitResults = new ConcurrentHashMap<>();
+    private final AtomicReference<BlockHitResult> hitResult = new AtomicReference<>();
     //在天上生成的起始位置
     private final BlockPos blockPos;
     private final Vector3f position;
@@ -56,7 +59,7 @@ public class RainParticle {
     }
 
     public BlockHitResult getHitResult() {
-        return hitResults.get(this);
+        return hitResult.getOpaque();
     }
 
     public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, int lifeSpan, float initialWidth) {
@@ -74,8 +77,7 @@ public class RainParticle {
         float pitchCos = Mth.cos(pitchRadians);
         Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
         ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
-        BlockHitResult result = this.raycaster.apply(context);
-        RainParticle.hitResults.put(this, result);
+        hitResult.setPlain(this.raycaster.apply(context));
     }
 
     public Biome.Precipitation getPrecipitation() {
@@ -87,12 +89,9 @@ public class RainParticle {
     }
 
     public boolean isDead() {
+
         return this.tickCount > this.lifeSpan;
     }
-    public void remove() {
-        hitResults.remove(this);
-    }
-    // TODO: fix:tickCount的速度跟不上帧速率?
     public void tick() {
         this.tickCount++;
         alpha = 1.0f - ((float) this.tickCount / this.lifeSpan);
@@ -102,14 +101,11 @@ public class RainParticle {
         float pitchCos = Mth.cos(pitchRadians);
         //TODO: 不是很优良的解法
         //初始化的时候执行一次,tick后的放到异步执行
-        if (tickCount%5==0) {
-            RayThreadPool.submitTask(() -> {
-                Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
-                ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
-                BlockHitResult result = this.raycaster.apply(context);
-                RainParticle.hitResults.put(this, result);
-            });
-        }
+        RayThreadPool.submitTask(() -> {
+            Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
+            ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
+            hitResult.setOpaque(this.raycaster.apply(context));
+        });
 
         this.length = (float) start.distanceTo(getHitResult().getLocation());
         this.widthO = this.width;
@@ -134,8 +130,7 @@ public class RainParticle {
         stack.mulPose(inverseRotation.invert());
         stack.mulPose(Axis.YP.rotation(angleToCam));
         Matrix4f mat = stack.last().pose();
-        //-0.1f太快
-        float vOffset = ((float) this.tickCount + partialTick) * -0.01F;
+        float vOffset = ((float) this.tickCount + partialTick) * -0.1F;
         float width = Mth.lerp(partialTick, this.widthO, this.width);
 //        System.out.println("vOffset: " + vOffset);
         float u1 = width / 2.0F * 0.5F + 0.5F;

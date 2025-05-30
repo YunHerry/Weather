@@ -40,7 +40,6 @@ public abstract class MixinLevelRenderer {
     public void weather$injectCustomWeatherRendering_renderLevel(PoseStack stack, float partialTick, long l, boolean flag, Camera camera, GameRenderer renderer, LightTexture texture, Matrix4f projMat, CallbackInfo ci)
     {
 //        WorldContext.renderer.renderWeather(texture, partialTick, (float) camera.getPosition().x, (float) camera.getPosition().y, (float) camera.getPosition().z,this.getTicks(),this.rainSizeX,this.rainSizeZ);
-        ParticleRenderer.update();
         WorldContext.renderers.forEach(item->{
             if (item.isConditionalRendering()) {
                 if(item.getRenderer().isRender()) {
@@ -60,9 +59,15 @@ public abstract class MixinLevelRenderer {
     {
             ci.cancel();
     }
+    @Inject(method = "allChanged", at = @At("HEAD"))
+    public void weather$allChanged(CallbackInfo ci)
+    {
+        ParticleRenderer.update();
+    }
     @Inject(method = "tick", at = @At("HEAD"))
     public void weather$tickCloudRenderer_tick(CallbackInfo ci)
     {
+        ParticleRenderer.update();
         WorldContext.renderers.forEach(item->{
             item.getRenderer().tick();
             if(item.isEnableRandomTick() && item.getRenderer().isRandomTick()) {
