@@ -47,6 +47,7 @@ public class RainParticle {
     private float widthO;
     private float width;
     private float alpha = 1.0f;
+
     private class RainInfo {
 
     }
@@ -87,7 +88,6 @@ public class RainParticle {
 
     public void tick() {
         this.tickCount++;
-
         alpha = 1.0f - ((float) this.tickCount / this.lifeSpan);
         Vec3 start = new Vec3(this.position);
         float yawRadians = -this.yRot;
@@ -126,6 +126,7 @@ public class RainParticle {
         Matrix4f mat = stack.last().pose();
         float vOffset = ((float) this.tickCount + partialTick) * -0.1F;
         float width = Mth.lerp(partialTick, this.widthO, this.width);
+//        System.out.println("vOffset: " + vOffset);
         float u1 = width / 2.0F * 0.5F + 0.5F;
         float u0 = 0.5F - width / 2.0F * 0.5F;
         consumer.vertex(mat, width / 2.0F, 0.0F, 0.0F).uv(u0, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();

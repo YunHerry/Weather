@@ -72,7 +72,7 @@ public class RainRenderer extends WeatherRenderer {
             float rainIntensity = this.mc.level.getRainLevel(1.0F);
             //TODO isThundering?
 //            int lifeSpanBase = level.isThundering() ? 20 : 10;
-            int lifeSpanBase = 60;
+            int lifeSpanBase = 10;
             //框定范围
 
             Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
@@ -100,21 +100,16 @@ public class RainRenderer extends WeatherRenderer {
         }
 
         AABB box = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
-        this.precipitationQuads.entrySet().forEach((entry) -> {
-            entry.getValue().tick();
-        });
         var rain = this.precipitationQuads.entrySet().iterator();
         while (rain.hasNext()) {
             var entry = rain.next();
             RainParticle quad = entry.getValue();
-//            quad.tick();
             //渲染雨滴的开始位置
             BlockPos pos = entry.getKey();
 
             if (!box.contains(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) || quad.isDead()) {
                 this.quadsByPrecipitation.get(quad.getPrecipitation()).remove(quad);
                 rain.remove();
-
                 continue;
             }
 
@@ -180,7 +175,7 @@ public class RainRenderer extends WeatherRenderer {
                 }
             }
 
-
+            quad.tick();
         }
 
     }
