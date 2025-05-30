@@ -199,7 +199,6 @@ public class RainRenderer extends WeatherRenderer {
             if (!box.contains(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) || quad.isDead()) {
                 this.quadsByPrecipitation.get(quad.getPrecipitation()).remove(quad);
                 rain.remove();
-                quad.remove();
             } else {
                 quad.tick();
             }
