@@ -15,28 +15,31 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.slf4j.Log4jLogger;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
-
+import org.apache.logging.log4j.LogManager;
 //TODO: 备忘,水草/荷叶靠近水面的时候会产生波纹
 //TODO: 备忘,手上拿着火把会产生烟雾
-//TODO: 围绕碰撞体积生成白边
 @SuppressWarnings("deprecation")
 @Mod(Weather.MOD_ID)
 @FrameApplication
 public class Weather {
-
     public static final String MOD_ID = "weather";
     private static ArtifactVersion version;
-    private static final Logger LOGGER = LogUtils.getLogger();
-
     public Weather() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, IOException, ClassNotFoundException {
+
         version = ModLoadingContext.get().getActiveContainer().getModInfo().getVersion();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ParticleRegistry.PARTICLES.register(modEventBus);
@@ -65,7 +68,9 @@ public class Weather {
     private void commonSetup(RegisterEvent event) {
 
     }
-
+    public static boolean isDebugLevel() {
+        return "debug".equals(System.getProperty("forge.logging.console.level"));
+    }
     // Add the example block item to the building blocks tab
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -86,9 +91,10 @@ public class Weather {
 
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+            if (isDebugLevel()) {
+                WorldContext.isDebugMode = true;
+                Configurator.setLevel("org.valkyrienskies.core.impl.shadow.Ej", org.apache.logging.log4j.Level.OFF);
+            }
         }
     }
 

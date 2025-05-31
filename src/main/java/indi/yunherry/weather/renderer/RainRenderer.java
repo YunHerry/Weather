@@ -50,8 +50,8 @@ public class RainRenderer extends WeatherRenderer {
     public void tick() {
         if (mc == null) return;
         if (!level.isRaining()) return;
-
-        float xRot = (12.5f) * ((float) Math.PI / 180.0F);
+        //角度
+        float xRot = (0) * ((float) Math.PI / 180.0F);
         Vector3f direction = new Vector3f(1.0F, 0.0F, 0.0F);
         float yRot = (float) -Mth.atan2(direction.x, direction.z);
         float xRotCos = Mth.cos(xRot - (float) Math.PI / 2.0F);
@@ -59,11 +59,11 @@ public class RainRenderer extends WeatherRenderer {
         int zOffset = Mth.floor(Mth.cos(-yRot) * xRotCos * ((float) 32 / 2.0F));
         int radius = Mth.floor((float) 32 / 2.0F * (Minecraft.useFancyGraphics() ? 1.0F : 0.5F));
         int minX = camPos.getX() - radius - xOffset;
-        int minY = camPos.getY() + 8;
+        int minY = 180;
         int minZ = camPos.getZ() - radius - zOffset;
         int maxX = camPos.getX() + radius - xOffset;
         //TODO configurable
-        int maxY = camPos.getY() + 32;
+        int maxY = 192;
         int maxZ = camPos.getZ() + radius - zOffset;
 
         Biome biome = this.mc.level.getBiome(camPos).value();
@@ -81,14 +81,15 @@ public class RainRenderer extends WeatherRenderer {
                 for (int x = minX; x < maxX; x++) {
                     for (int z = minZ; z < maxZ; z++) {
                         int height = this.mc.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                        for (int y = minY; y < maxY; y++) {
+                        for (int y = minY; y <= maxY; y++) {
                             if (height > y) continue;
                             BlockPos pos = new BlockPos(x, y, z);
                             RandomSource blockRandom = RandomSource.create(pos.asLong());
                             if (!this.precipitationQuads.containsKey(pos)) {
                                 if (blockRandom.nextInt(100) <= 1) {
                                     float widthModifier = 2.0F;
-                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F, lifeSpanBase + random.nextInt(lifeSpanBase), rainIntensity * widthModifier);
+
+                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F, lifeSpanBase + random.nextInt(lifeSpanBase), rainIntensity * widthModifier, camPos.getY());
                                     this.precipitationQuads.put(pos, quad);
                                     this.quadsByPrecipitation.computeIfAbsent(precipitation, p -> Lists.newArrayList()).add(quad);
                                 }
@@ -98,8 +99,9 @@ public class RainRenderer extends WeatherRenderer {
                 }
             }
         }
-
-        AABB box = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+//        System.out.println( this.precipitationQuads.size());
+//        System.out.println("minx: " + minX + " minY: " + minY + " minZ: " + minZ + " maxX: " + maxX + " maxY: " + maxY + " maxZ: " + maxZ);
+        AABB box = new AABB(minX, camPos.getY() + 4, minZ, maxX, maxY, maxZ);
         var rain = this.precipitationQuads.entrySet().iterator();
         while (rain.hasNext()) {
             var entry = rain.next();
@@ -110,13 +112,10 @@ public class RainRenderer extends WeatherRenderer {
             if (!box.contains(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) || quad.isDead()) {
                 this.quadsByPrecipitation.get(quad.getPrecipitation()).remove(quad);
                 rain.remove();
-
                 continue;
             }
             quad.tick();
-
             //粒子生成不正确,侧面
-            SpawnParticles:
             if (isRainPrecipitation) {
                 Level levelreader = this.mc.level;
                 BlockHitResult hitResult = quad.getHitResult();
@@ -147,7 +146,9 @@ public class RainRenderer extends WeatherRenderer {
                         }
                         case DOWN -> {
                             // 底部不生成粒子
-                            break SpawnParticles;
+                            baseX += (random.nextDouble() - 0.5) * randomSpread;
+                            baseZ += (random.nextDouble() - 0.5) * randomSpread;
+                            baseY += edgeOffset;
                         }
                         case NORTH -> {
                             // 北侧：Z轴负方向偏移，XY平面随机

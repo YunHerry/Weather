@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Level;
 
 public class WorldContext {
+    public static boolean isDebugMode = false;
     public static WeatherType nowWeather = WeatherType.NONE;
     public static WindDirectionType windDirection = WindDirectionType.NONE;
     public static ThreadLocalRandom random = ThreadLocalRandom.current();

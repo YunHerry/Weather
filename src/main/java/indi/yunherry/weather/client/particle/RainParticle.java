@@ -47,7 +47,7 @@ public class RainParticle {
     private float widthO;
     private float width;
     private float alpha = 1.0f;
-
+    private int rayLength;
     private class RainInfo {
 
     }
@@ -56,7 +56,7 @@ public class RainParticle {
         return hitResult.getAcquire();
     }
 
-    public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, int lifeSpan, float initialWidth) {
+    public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, int lifeSpan, float initialWidth,int camY) {
         this.precipitation = precipitation;
         this.raycaster = raycaster;
         this.blockPos = position;
@@ -65,11 +65,12 @@ public class RainParticle {
         this.yRot = yRot;
         this.lifeSpan = lifeSpan;
         this.initialWidth = Math.max(0.1F, initialWidth);// Mth.clamp(initialWidth, 0.1F, MAX_WIDTH);
+        this.rayLength = (camY > 0?position.getY() - camY: position.getY() + Math.abs(camY))+10;
         Vec3 start = new Vec3(this.position);
         float yawRadians = -this.yRot;
         float pitchRadians = this.xRot - (float) Math.PI / 2.0F;
         float pitchCos = Mth.cos(pitchRadians);
-        Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
+        Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(rayLength).add(start);
         ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
         hitResult.setPlain(this.raycaster.apply(context));
     }
@@ -96,7 +97,7 @@ public class RainParticle {
         //初始化的时候执行一次,tick后的放到异步执行
         RayThreadPool.submitTask(() -> {
             float pitchCos = Mth.cos(pitchRadians);
-            Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(MAX_LENGTH).add(start);
+            Vec3 end = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).scale(rayLength).add(start);
             ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
             hitResult.setRelease(this.raycaster.apply(context));
         });

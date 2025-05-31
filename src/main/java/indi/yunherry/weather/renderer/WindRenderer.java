@@ -3,7 +3,10 @@ package indi.yunherry.weather.renderer;
 import indi.yunherry.weather.ParticleRegistry;
 import indi.yunherry.weather.WindDirectionType;
 import indi.yunherry.weather.annotation.Renderer;
+import indi.yunherry.weather.factory.factory.RendererFactory;
 import net.minecraft.world.level.biome.Biome;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -11,6 +14,7 @@ import static indi.yunherry.weather.WorldContext.windDirection;
 
 @Renderer(isConditionalRendering = true, isEnableRandomTick = true)
 public class WindRenderer extends ParticleRenderer {
+    private static final Logger log = LoggerFactory.getLogger(RendererFactory.class);
     private final WindDirectionType[] directionTypes = WindDirectionType.values();
 
     @Override

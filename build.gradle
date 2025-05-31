@@ -44,7 +44,6 @@ minecraft {
             property 'forge.logging.markers', 'REGISTRIES'
 
             property 'forge.logging.console.level', 'debug'
-
             mods {
                 "${mod_id}" {
                     source sourceSets.main
