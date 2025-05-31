@@ -1,6 +1,5 @@
 {
   "textures": [
-    "weather:wind_1",
     "weather:wind_2",
     "weather:wind_3",
     "weather:wind_4",
@@ -18,18 +17,6 @@
     "weather:wind_16",
     "weather:wind_17",
     "weather:wind_18",
-    "weather:wind_19",
-    "weather:wind_20",
-    "weather:wind_21",
-    "weather:wind_22",
-    "weather:wind_23",
-    "weather:wind_24",
-    "weather:wind_25",
-    "weather:wind_26",
-    "weather:wind_27",
-    "weather:wind_28",
-    "weather:wind_29",
-    "weather:wind_30",
-    "weather:wind_31"
+    "weather:wind_19"
   ]
 }
