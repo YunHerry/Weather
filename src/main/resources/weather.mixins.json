@@ -13,6 +13,7 @@
   ],
   "client": [
     "MixinBaseAshSmokeParticle",
+    "MixinDripParticle",
     "MixinParticle",
     "MixinParticleEngine",
     "MixinWaterDropParticle"

@@ -2,19 +2,28 @@ package indi.yunherry.weather.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import indi.yunherry.weather.ParticleRegistry;
 import indi.yunherry.weather.impl.EntityShipCollisionUtilsInvoker;
 import kotlin.Pair;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3dc;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.core.apigame.collision.ConvexPolygonc;
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod;
 import org.valkyrienskies.mod.common.util.EntityShipCollisionUtils;
@@ -26,7 +35,19 @@ import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
 import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toMinecraft;
 
 @Mixin(Particle.class)
-public class MixinParticle {
+public abstract class MixinParticle {
+    @Shadow protected boolean removed;
+
+    @Shadow @Final protected ClientLevel level;
+
+    @Shadow public abstract Vec3 getPos();
+
+    @Shadow protected double x;
+
+    @Shadow protected double y;
+
+    @Shadow protected double z;
+
     @WrapOperation(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;collideBoundingBox(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Lnet/minecraft/world/level/Level;Ljava/util/List;)Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 wrapCollideBoundingBox(Entity entity, Vec3 movement, AABB box, Level level, List<VoxelShape> context, Operation<Vec3> original) {
         double baseInflation = (entity instanceof Player) ? 0.5 : 0.1;

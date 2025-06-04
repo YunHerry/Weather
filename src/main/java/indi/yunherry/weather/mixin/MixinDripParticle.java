@@ -1,0 +1,50 @@
+package indi.yunherry.weather.mixin;
+
+import indi.yunherry.weather.ParticleRegistry;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.DripParticle;
+import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CauldronBlock;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+
+@Mixin(DripParticle.class)
+public abstract class MixinDripParticle extends TextureSheetParticle {
+
+    protected MixinDripParticle(ClientLevel p_108323_, double p_108324_, double p_108325_, double p_108326_) {
+        super(p_108323_, p_108324_, p_108325_, p_108326_);
+    }
+    @Unique
+    @Override
+    public void remove() {
+        super.remove();
+        //奇怪的判定
+        BlockPos pos = new BlockPos((int) this.x, (int) this.y, (int) this.z).west();
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() == Blocks.WATER) {
+            level.addParticle(ParticleRegistry.RIPPLE.get(), this.x, this.y+0.4, this.z, 0.0, 0.0, 0.0);
+        } else if (state.getBlock() == Blocks.WATER_CAULDRON) {
+            double length = 0;
+            switch (state.getValue(LayeredCauldronBlock.LEVEL)) {
+                case 1:
+                    length = this.y + 0.4;
+                    break;
+                case 2:
+                    length = this.y + 0.6;
+                    break;
+                case 3:
+                    length = this.y + 0.7;
+            }
+            level.addParticle(ParticleRegistry.RIPPLE.get(), this.x,  length, this.z, 0.0, 0.0, 0.0);
+        } else if (state.getBlock() == Blocks.CAULDRON) {
+            level.addParticle(ParticleTypes.RAIN,this.x, this.y+1, this.z, 0.0, 0.0, 0.0);
+        }
+    }
+}
