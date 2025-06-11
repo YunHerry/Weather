@@ -1,5 +1,7 @@
 package indi.yunherry.weather.factory.factory;
 
+import indi.yunherry.weather.Weather;
+import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.ParentMark;
 import indi.yunherry.weather.exception.InitFactoryException;
 import net.minecraftforge.fml.ModList;
@@ -29,6 +31,9 @@ public abstract class Factory {
                 return annotationClass.isAnnotationPresent(ParentMark.class);
             } catch (ClassNotFoundException e) {
 //                e.printStackTrace();
+                if (WorldContext.isDebugMode) {
+                    e.printStackTrace();
+                }
                 return false;
             }
         }).collect(Collectors.groupingBy(item -> item.annotationType().getClassName()));

@@ -39,7 +39,7 @@ public class Weather {
     public static final String MOD_ID = "weather";
     private static ArtifactVersion version;
     public Weather() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, IOException, ClassNotFoundException {
-
+        if (isDebugLevel())WorldContext.isDebugMode = true;
         version = ModLoadingContext.get().getActiveContainer().getModInfo().getVersion();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ParticleRegistry.PARTICLES.register(modEventBus);
@@ -92,7 +92,6 @@ public class Weather {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             if (isDebugLevel()) {
-                WorldContext.isDebugMode = true;
                 Configurator.setLevel("org.valkyrienskies.core.impl.shadow.Ej", org.apache.logging.log4j.Level.OFF);
             }
         }
