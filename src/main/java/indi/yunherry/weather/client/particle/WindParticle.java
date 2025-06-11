@@ -7,6 +7,7 @@ import indi.yunherry.weather.WorldContext;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.phys.Vec3;
@@ -33,6 +34,7 @@ public class WindParticle extends TextureSheetParticle {
                     GlStateManager.SourceFactor.SRC_ALPHA,
                     GlStateManager.DestFactor.ONE
             );
+            RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
             builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
 
@@ -49,7 +51,7 @@ public class WindParticle extends TextureSheetParticle {
         super(world, x, y, z, xSpeed, ySpeed, zSpeed);
         this.sprites = p_107724_;
         this.scale(20.5F + random.nextInt(60));
-        this.lifetime = 50;
+        this.lifetime = 54;
         this.hasPhysics = true;
         this.setPos(x, y, z);
         this.setSpriteFromAge(p_107724_);

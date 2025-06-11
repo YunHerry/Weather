@@ -21,11 +21,14 @@ public abstract class Factory {
         classes = ModList.get().getAllScanData().stream().map(ModFileScanData::getAnnotations).flatMap(Collection::stream).filter(item -> {
             Type annotationType = item.annotationType();
             String className = annotationType.getClassName();
+            if (className.contains("mixin")) {
+                return false;
+            }
             try {
                 Class<?> annotationClass = Class.forName(className);
                 return annotationClass.isAnnotationPresent(ParentMark.class);
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
                 return false;
             }
         }).collect(Collectors.groupingBy(item -> item.annotationType().getClassName()));

@@ -1,5 +1,6 @@
 package indi.yunherry.weather.factory.bean;
 
+import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.renderer.ParticleRenderer;
 import net.minecraftforge.forgespi.language.ModFileScanData;
@@ -23,6 +24,8 @@ public class RendererEngine extends Engine {
         this.isConditionalRendering = anno.isConditionalRendering();
         this.isEnableRandomTick = anno.isEnableRandomTick();
         renderer = clazz.getDeclaredConstructor().newInstance();
+        WorldContext.beans.put(clazz.getSimpleName(),renderer);
+        System.out.println(clazz.getSimpleName());
     }
 
     public boolean isEnableRandomTick() {

@@ -20,6 +20,7 @@ public class RendererFactory extends Factory {
     protected void create(Map<String, List<ModFileScanData.AnnotationData>> beans) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<RendererEngine> renderers = beans.get("indi.yunherry.weather.annotation.Renderer").stream().map(item -> {
             try {
+
                 return new RendererEngine(item);
             } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
                      InvocationTargetException e) {
@@ -28,6 +29,7 @@ public class RendererFactory extends Factory {
             }
         }).toList();
         WorldContext.renderers.addAll(renderers);
+
 //        ScanTypeEnum scanTypeEnum = getScanRange(WorldContext.mainClass);
 //        finds(beans, renderers, Renderer.class, indi.yunherry.weather.renderer.ParticleRenderer.class, scanTypeEnum);
     }

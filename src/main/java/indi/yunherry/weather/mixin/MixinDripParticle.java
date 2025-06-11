@@ -31,17 +31,12 @@ public abstract class MixinDripParticle extends TextureSheetParticle {
         if (state.getBlock() == Blocks.WATER) {
             level.addParticle(ParticleRegistry.RIPPLE.get(), this.x, this.y+0.4, this.z, 0.0, 0.0, 0.0);
         } else if (state.getBlock() == Blocks.WATER_CAULDRON) {
-            double length = 0;
-            switch (state.getValue(LayeredCauldronBlock.LEVEL)) {
-                case 1:
-                    length = this.y + 0.4;
-                    break;
-                case 2:
-                    length = this.y + 0.6;
-                    break;
-                case 3:
-                    length = this.y + 0.7;
-            }
+            double length = switch (state.getValue(LayeredCauldronBlock.LEVEL)) {
+                case 1 -> this.y + 0.4;
+                case 2 -> this.y + 0.6;
+                case 3 -> this.y + 0.7;
+                default -> 0;
+            };
             level.addParticle(ParticleRegistry.RIPPLE.get(), this.x,  length, this.z, 0.0, 0.0, 0.0);
         } else if (state.getBlock() == Blocks.CAULDRON) {
             level.addParticle(ParticleTypes.RAIN,this.x, this.y+1, this.z, 0.0, 0.0, 0.0);

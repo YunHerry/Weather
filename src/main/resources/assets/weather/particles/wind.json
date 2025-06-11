@@ -1,5 +1,6 @@
 {
   "textures": [
+    "weather:wind_1",
     "weather:wind_2",
     "weather:wind_3",
     "weather:wind_4",
@@ -16,7 +17,6 @@
     "weather:wind_15",
     "weather:wind_16",
     "weather:wind_17",
-    "weather:wind_18",
-    "weather:wind_19"
+    "weather:wind_18"
   ]
 }
