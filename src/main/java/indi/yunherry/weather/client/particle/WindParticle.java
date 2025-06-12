@@ -132,6 +132,7 @@ public class WindParticle extends TextureSheetParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
+    @indi.yunherry.weather.annotation.ParticleProvider(particleName = "wind")
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 

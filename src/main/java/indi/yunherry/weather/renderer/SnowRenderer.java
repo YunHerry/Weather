@@ -1,19 +1,14 @@
 package indi.yunherry.weather.renderer;
 
-import indi.yunherry.weather.ParticleRegistry;
 import indi.yunherry.weather.WeatherConfig;
-import indi.yunherry.weather.WeatherType;
+import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.concurrent.ThreadLocalRandom;
-
-import static indi.yunherry.weather.WorldContext.nowWeather;
 
 @Renderer
 public class SnowRenderer extends WeatherRenderer {
@@ -55,7 +50,7 @@ public class SnowRenderer extends WeatherRenderer {
                     return;
                 }
                 if (ThreadLocalRandom.current().nextFloat() < 0.8f) {
-                    level.addParticle(ParticleRegistry.SNOW.get(), posX + random.nextFloat(), posY + random.nextFloat(), posZ + random.nextFloat(), 0, 0, 0);
+                    level.addParticle(WorldContext.particleBeans.get("snow").get(), posX + random.nextFloat(), posY + random.nextFloat(), posZ + random.nextFloat(), 0, 0, 0);
                 }
             }
         }

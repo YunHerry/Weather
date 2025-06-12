@@ -43,26 +43,25 @@ public class RainParticle {
     private float length = MAX_LENGTH;
     private float xRot;
     private float yRot;
+    private float zRot;
     private int tickCount;
     private float widthO;
     private float width;
     private float alpha = 1.0f;
     private int rayLength;
-    private class RainInfo {
-
-    }
 
     public BlockHitResult getHitResult() {
         return hitResult.getAcquire();
     }
 
-    public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, int lifeSpan, float initialWidth,int camY) {
+    public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot,float zRot, int lifeSpan, float initialWidth,int camY) {
         this.precipitation = precipitation;
         this.raycaster = raycaster;
         this.blockPos = position;
         this.position = new Vector3f(position.getX() + 0.5F, position.getY() + 0.5F, position.getZ() + 0.5F);
         this.xRot = xRot;
         this.yRot = yRot;
+        this.zRot = zRot;
         this.lifeSpan = lifeSpan;
         this.initialWidth = Math.max(0.1F, initialWidth);// Mth.clamp(initialWidth, 0.1F, MAX_WIDTH);
         this.rayLength = (camY > 0?position.getY() - camY: position.getY() + Math.abs(camY))+10;
@@ -118,6 +117,7 @@ public class RainParticle {
         //创建旋转角度
         Quaternionf inverseRotation = new Quaternionf();
         inverseRotation.rotateX(this.xRot);
+        inverseRotation.rotateZ(this.zRot);
         inverseRotation.rotateY(this.yRot);
         Vector3f adjustedCamPos = new Vector3f((float) camX, (float) camY, (float) camZ).sub(this.position).rotate(inverseRotation).add(this.position);
         float angleToCam = (float) Mth.atan2(this.position.x - adjustedCamPos.x, this.position.z - adjustedCamPos.z);
@@ -127,7 +127,6 @@ public class RainParticle {
         Matrix4f mat = stack.last().pose();
         float vOffset = ((float) this.tickCount + partialTick) * -0.1F;
         float width = Mth.lerp(partialTick, this.widthO, this.width);
-//        System.out.println("vOffset: " + vOffset);
         float u1 = width / 2.0F * 0.5F + 0.5F;
         float u0 = 0.5F - width / 2.0F * 0.5F;
         consumer.vertex(mat, width / 2.0F, 0.0F, 0.0F).uv(u0, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();

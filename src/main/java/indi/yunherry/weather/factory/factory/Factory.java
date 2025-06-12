@@ -7,6 +7,8 @@ import indi.yunherry.weather.exception.InitFactoryException;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
  * @author YunHerry
  */
 public abstract class Factory {
+    private static final Logger log = LoggerFactory.getLogger(Factory.class);
     protected static Map<String, List<ModFileScanData.AnnotationData>> classes;
 
     public static void initFactory() {
@@ -30,9 +33,8 @@ public abstract class Factory {
                 Class<?> annotationClass = Class.forName(className);
                 return annotationClass.isAnnotationPresent(ParentMark.class);
             } catch (ClassNotFoundException e) {
-//                e.printStackTrace();
                 if (WorldContext.isDebugMode) {
-                    e.printStackTrace();
+                    log.error(e.getMessage());
                 }
                 return false;
             }

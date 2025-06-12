@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import indi.yunherry.weather.ParticleRegistry;
+import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.client.particle.RainParticle;
 import indi.yunherry.weather.utils.ShaderUtils;
@@ -51,7 +51,39 @@ public class RainRenderer extends WeatherRenderer {
         if (mc == null) return;
         if (!level.isRaining()) return;
         //角度
-        float xRot = (0) * ((float) Math.PI / 180.0F);
+        //正值朝向东
+        //22.5f可以作为暴风雨的最大角度
+        //斜角会导致aabb区域需要扩大,因为当出现斜角后aabb不是中心了
+        //TODO: 实现斜角雨/暴风雪
+        float xRot = (8f) * ((float) Math.PI / 180.0F);
+        float zRot = (0) * ((float) Math.PI / 180.0F);
+//        switch (WorldContext.windDirection) {
+//            case NORTH -> {
+//                // 北风：风从北向南，模拟向南偏移
+//                xRot = 0f;
+//                zRot = (float) Math.toRadians(0);
+//            }
+//            case SOUTH -> {
+//                // 南风：风从南向北，模拟向北偏移
+//                xRot = 0f;
+//                zRot = 0f;
+//            }
+//            case EAST -> {
+//                // 东风：风从东向西，模拟向西偏移
+//                xRot = 0f;
+//                zRot = (float) Math.toRadians(0);
+//            }
+//            case WEST -> {
+//                // 西风：风从西向东，模拟向东偏移
+//                xRot = 0f;
+//                zRot = (float) Math.toRadians(0);
+//            }
+//            case NONE -> {
+//                // 无风：保持不动或使用默认角度
+//                xRot = 0f;
+//                zRot = 0f;
+//            }
+//        }
         Vector3f direction = new Vector3f(1.0F, 0.0F, 0.0F);
         float yRot = (float) -Mth.atan2(direction.x, direction.z);
         float xRotCos = Mth.cos(xRot - (float) Math.PI / 2.0F);
@@ -89,7 +121,7 @@ public class RainRenderer extends WeatherRenderer {
                                 if (blockRandom.nextInt(100) <= 1) {
                                     float widthModifier = 2.0F;
 
-                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F, lifeSpanBase + random.nextInt(lifeSpanBase), rainIntensity * widthModifier, camPos.getY());
+                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F,zRot + random.nextFloat() * 0.1F, lifeSpanBase + random.nextInt(lifeSpanBase), rainIntensity * widthModifier, camPos.getY());
                                     this.precipitationQuads.put(pos, quad);
                                     this.quadsByPrecipitation.computeIfAbsent(precipitation, p -> Lists.newArrayList()).add(quad);
                                 }
@@ -174,7 +206,7 @@ public class RainRenderer extends WeatherRenderer {
 
                     levelreader.addParticle(particleoptions, baseX, baseY + (hitFace == Direction.UP ? 0 : random.nextDouble() * 0.3), baseZ, 0.0, 0.0, 0.0);
                     if (fluidstate.isSourceOfType(Fluids.WATER) && ThreadLocalRandom.current().nextInt(10000) > 9800) {
-                        level.addParticle(ParticleRegistry.RIPPLE.get(), baseX, downPos.getY() + 1, baseZ, 0.0, 0.0, 0.0);
+                        level.addParticle(WorldContext.particleBeans.get("ripple").get(), baseX, downPos.getY() + 1, baseZ, 0.0, 0.0, 0.0);
                     }
                 }
             }

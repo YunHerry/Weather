@@ -1,7 +1,7 @@
 package indi.yunherry.weather.renderer;
 
-import indi.yunherry.weather.ParticleRegistry;
 import indi.yunherry.weather.WindDirectionType;
+import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.factory.factory.RendererFactory;
 import net.minecraft.world.level.biome.Biome;
@@ -24,7 +24,7 @@ public class WindRenderer extends ParticleRenderer {
         if (random.nextInt(100) >= 92) {
             Biome biome = level.getBiome(camPos).value();
             if (windDirection != WindDirectionType.NONE) {
-                level.addParticle(ParticleRegistry.WIND.get(), camPos.getX() + random.nextDouble() - 0.5, camPos.getY() + random.nextDouble() - 0.6, camPos.getZ() + random.nextDouble() - 0.5, 0.0, 0.0, 0.0);
+                level.addParticle(WorldContext.particleBeans.get("wind").get(), camPos.getX() + random.nextDouble() - 0.5, camPos.getY() + random.nextDouble() - 0.6, camPos.getZ() + random.nextDouble() - 0.5, 0.0, 0.0, 0.0);
 //                this.mc.level.addParticle(ParticleRegistry.WIND.get(), 517, 94, 210, 0.0, 0.0, 0.0);
             }
         }

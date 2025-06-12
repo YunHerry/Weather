@@ -1,17 +1,14 @@
 package indi.yunherry.weather.mixin;
 
-import indi.yunherry.weather.ParticleRegistry;
+import indi.yunherry.weather.WorldContext;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.DripParticle;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -29,7 +26,7 @@ public abstract class MixinDripParticle extends TextureSheetParticle {
         BlockPos pos = new BlockPos((int) this.x, (int) this.y, (int) this.z).west();
         BlockState state = level.getBlockState(pos);
         if (state.getBlock() == Blocks.WATER) {
-            level.addParticle(ParticleRegistry.RIPPLE.get(), this.x, this.y+0.4, this.z, 0.0, 0.0, 0.0);
+            level.addParticle(WorldContext.particleBeans.get("ripple").get(), this.x, this.y+0.4, this.z, 0.0, 0.0, 0.0);
         } else if (state.getBlock() == Blocks.WATER_CAULDRON) {
             double length = switch (state.getValue(LayeredCauldronBlock.LEVEL)) {
                 case 1 -> this.y + 0.4;
@@ -37,7 +34,7 @@ public abstract class MixinDripParticle extends TextureSheetParticle {
                 case 3 -> this.y + 0.7;
                 default -> 0;
             };
-            level.addParticle(ParticleRegistry.RIPPLE.get(), this.x,  length, this.z, 0.0, 0.0, 0.0);
+            level.addParticle(WorldContext.particleBeans.get("ripple").get(), this.x,  length, this.z, 0.0, 0.0, 0.0);
         } else if (state.getBlock() == Blocks.CAULDRON) {
             level.addParticle(ParticleTypes.RAIN,this.x, this.y+1, this.z, 0.0, 0.0, 0.0);
         }

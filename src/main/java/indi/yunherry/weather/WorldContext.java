@@ -1,9 +1,12 @@
 package indi.yunherry.weather;
 
+import indi.yunherry.weather.factory.bean.ParticleRegisterEngine;
 import indi.yunherry.weather.factory.bean.RendererEngine;
 import indi.yunherry.weather.renderer.ParticleRenderer;
 import indi.yunherry.weather.renderer.WeatherRenderer;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,7 @@ public class WorldContext {
     public static final int MAX_EASE_DURATION = 40; // 最大缓动时间
     public static final float MAX_EASE_OFFSET = 30.0f; // 最大角度偏移
     public static final List<RendererEngine> renderers = new ArrayList<>();
+    public static final Map<String, RegistryObject<SimpleParticleType>> particleBeans = new ConcurrentHashMap<>();
     public static final Map<String, ParticleRenderer> beans = new ConcurrentHashMap<>();
     public static Class<?> mainClass;
     protected WorldContext()

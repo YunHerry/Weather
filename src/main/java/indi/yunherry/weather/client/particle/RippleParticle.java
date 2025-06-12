@@ -107,6 +107,7 @@ public class RippleParticle extends WeatherParticle {
 
 
     @OnlyIn(Dist.CLIENT)
+    @indi.yunherry.weather.annotation.ParticleProvider(particleName = "ripple")
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 

@@ -67,6 +67,7 @@ public class SnowParticle extends WeatherParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
+    @indi.yunherry.weather.annotation.ParticleProvider(particleName = "snow")
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprite;
 
