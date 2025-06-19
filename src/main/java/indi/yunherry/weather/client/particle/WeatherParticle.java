@@ -13,11 +13,13 @@ import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Math;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-
+@OnlyIn(Dist.CLIENT)
 public class WeatherParticle extends TextureSheetParticle {
     protected BlockPos.MutableBlockPos pos;
 

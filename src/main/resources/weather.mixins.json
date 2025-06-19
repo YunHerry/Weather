@@ -7,8 +7,10 @@
   "plugin": "indi.yunherry.weather.plugin.CompatMixinPlugin",
   "mixins": [
     "InvokerEntityShipCollisionUtils",
+    "MixinCampfireBlock",
     "MixinCommands",
     "MixinLevelRenderer",
+    "MixinMagmaBlock",
     "MixinSeagrass"
   ],
   "client": [

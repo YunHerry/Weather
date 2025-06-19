@@ -55,7 +55,7 @@ public class RainRenderer extends WeatherRenderer {
         //22.5f可以作为暴风雨的最大角度
         //斜角会导致aabb区域需要扩大,因为当出现斜角后aabb不是中心了
         //TODO: 实现斜角雨/暴风雪
-        float xRot = (8f) * ((float) Math.PI / 180.0F);
+        float xRot = (0f) * ((float) Math.PI / 180.0F);
         float zRot = (0) * ((float) Math.PI / 180.0F);
 //        switch (WorldContext.windDirection) {
 //            case NORTH -> {
@@ -91,11 +91,11 @@ public class RainRenderer extends WeatherRenderer {
         int zOffset = Mth.floor(Mth.cos(-yRot) * xRotCos * ((float) 32 / 2.0F));
         int radius = Mth.floor((float) 32 / 2.0F * (Minecraft.useFancyGraphics() ? 1.0F : 0.5F));
         int minX = camPos.getX() - radius - xOffset;
-        int minY = 180;
+        int minY = camPos.getY() + 8;
         int minZ = camPos.getZ() - radius - zOffset;
         int maxX = camPos.getX() + radius - xOffset;
         //TODO configurable
-        int maxY = 192;
+        int maxY = camPos.getY() + 32;
         int maxZ = camPos.getZ() + radius - zOffset;
 
         Biome biome = this.mc.level.getBiome(camPos).value();
@@ -113,7 +113,7 @@ public class RainRenderer extends WeatherRenderer {
                 for (int x = minX; x < maxX; x++) {
                     for (int z = minZ; z < maxZ; z++) {
                         int height = this.mc.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                        for (int y = minY; y <= maxY; y++) {
+                        for (int y = minY; y < maxY; y++) {
                             if (height > y) continue;
                             BlockPos pos = new BlockPos(x, y, z);
                             RandomSource blockRandom = RandomSource.create(pos.asLong());
@@ -155,6 +155,7 @@ public class RainRenderer extends WeatherRenderer {
                 if (Objects.nonNull(hitResult) && hitResult.getType() != HitResult.Type.MISS) {
                     //是击中的方块中心
                     BlockPos downPos = hitResult.getBlockPos();
+//                    System.out.println(downPos);
                     BlockState blockstate = levelreader.getBlockState(downPos);
                     FluidState fluidstate = levelreader.getFluidState(downPos);
                     VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
@@ -167,7 +168,7 @@ public class RainRenderer extends WeatherRenderer {
                     double baseY = downPos.getY() + maxSurfaceY;
                     double baseZ = downPos.getZ() + 0.5;
                     Direction hitFace = hitResult.getDirection();
-                    final double edgeOffset = 0.30; // 外侧偏移量增大防止Z-fighting
+                    final double edgeOffset = 0.2; // 外侧偏移量增大防止Z-fighting
                     final double randomSpread = 0.4; // 表面随机散布范围
                     switch (hitFace) {
                         case UP -> {

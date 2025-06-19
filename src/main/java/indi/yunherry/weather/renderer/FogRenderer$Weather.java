@@ -43,7 +43,8 @@ public class FogRenderer$Weather extends WeatherRenderer {
     }
 
     public static boolean isShouldRunning() {
-        return isRaining;
+        return false;
+//        return isRaining;
     }
 
     public float getPartialTick() {

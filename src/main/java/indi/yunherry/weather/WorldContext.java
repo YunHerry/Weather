@@ -22,6 +22,7 @@ public class WorldContext {
     public static WeatherType nowWeather = WeatherType.NONE;
     public static WindDirectionType windDirection = WindDirectionType.NONE;
     public static ThreadLocalRandom random = ThreadLocalRandom.current();
+    public static WeatherConfig weatherConfig;
     public static boolean isEasing = false;
     public static float easeStartAngle = 0.0f;
     public static float easeTargetAngle = 0.0f;

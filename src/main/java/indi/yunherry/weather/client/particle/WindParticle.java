@@ -19,7 +19,7 @@ import java.util.Random;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
-
+@OnlyIn(Dist.CLIENT)
 public class WindParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
     private final Quaternionf rotation = new Quaternionf();

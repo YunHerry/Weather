@@ -10,7 +10,6 @@ import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,15 +19,15 @@ import java.util.stream.Collectors;
  */
 public abstract class Factory {
     private static final Logger log = LoggerFactory.getLogger(Factory.class);
+    public static final String PACKAGE_NAME = "indi.yunherry.weather";
+    public static final String MIXIN_KEY_NAME = "mixin";
     protected static Map<String, List<ModFileScanData.AnnotationData>> classes;
 
     public static void initFactory() {
         classes = ModList.get().getAllScanData().stream().map(ModFileScanData::getAnnotations).flatMap(Collection::stream).filter(item -> {
             Type annotationType = item.annotationType();
             String className = annotationType.getClassName();
-            if (className.contains("mixin")) {
-                return false;
-            }
+            if(!className.contains(PACKAGE_NAME) || className.contains(MIXIN_KEY_NAME)) return false;
             try {
                 Class<?> annotationClass = Class.forName(className);
                 return annotationClass.isAnnotationPresent(ParentMark.class);

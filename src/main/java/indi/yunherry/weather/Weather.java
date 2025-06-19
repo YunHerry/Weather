@@ -3,13 +3,19 @@ package indi.yunherry.weather;
 import com.mojang.logging.LogUtils;
 import indi.yunherry.weather.annotation.FrameApplication;
 import indi.yunherry.weather.factory.factory.Factory;
+import indi.yunherry.weather.hook.ConfigHandler;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -45,7 +51,13 @@ public class Weather {
         MinecraftForge.EVENT_BUS.register(WorldContext.class);
         WorldContext.mainClass = Weather.class;
 //        ClassLoader modClassLoader = Weather.class.getClassLoader();
-
+        //配置文件注册
+        //TODO: Refactor
+        if (ModList.get().isLoaded("cloth_config")) {
+            AutoConfig.register(WeatherConfig.class, JanksonConfigSerializer::new);
+            WorldContext.weatherConfig = AutoConfig.getConfigHolder(WeatherConfig.class).getConfig();
+            AutoConfig.getConfigHolder(WeatherConfig.class).registerSaveListener(ConfigHandler::saveListener);
+        }
     }
 
     private void commonSetup(RegisterEvent event) {
@@ -60,6 +72,16 @@ public class Weather {
 
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
+            //TODO: Refactor
+            if (ModList.get().isLoaded("cloth_config")) {
+                ModLoadingContext.get().registerExtensionPoint(
+                        ConfigScreenHandler.ConfigScreenFactory.class,
+                        () -> new ConfigScreenHandler.ConfigScreenFactory(
+                                (mc, screen) -> AutoConfig.getConfigScreen(WeatherConfig.class, screen).get()
+                        )
+                );
+            }
+
             if (isDebugLevel()) {
                 Configurator.setLevel("org.valkyrienskies.core.impl.shadow.Ej", org.apache.logging.log4j.Level.OFF);
             }

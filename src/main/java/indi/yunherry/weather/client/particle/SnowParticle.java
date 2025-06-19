@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import static indi.yunherry.weather.WorldContext.random;
 //import org.valkyrienskies.mod.common.VSClientGameUtils;
 
-
+@OnlyIn(Dist.CLIENT)
 public class SnowParticle extends WeatherParticle {
     private final float rotationAmount;
     private SpriteSet sprites;

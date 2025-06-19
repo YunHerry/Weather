@@ -29,17 +29,24 @@ import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toMinecra
 
 @Mixin(Particle.class)
 public abstract class MixinParticle {
-    @Shadow protected boolean removed;
+    @Shadow
+    protected boolean removed;
 
-    @Shadow @Final protected ClientLevel level;
+    @Shadow
+    @Final
+    protected ClientLevel level;
 
-    @Shadow public abstract Vec3 getPos();
+    @Shadow
+    public abstract Vec3 getPos();
 
-    @Shadow protected double x;
+    @Shadow
+    protected double x;
 
-    @Shadow protected double y;
+    @Shadow
+    protected double y;
 
-    @Shadow protected double z;
+    @Shadow
+    protected double z;
 
     @WrapOperation(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;collideBoundingBox(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Lnet/minecraft/world/level/Level;Ljava/util/List;)Lnet/minecraft/world/phys/Vec3;"))
     private Vec3 wrapCollideBoundingBox(Entity entity, Vec3 movement, AABB box, Level level, List<VoxelShape> context, Operation<Vec3> original) {
@@ -52,8 +59,7 @@ public abstract class MixinParticle {
         Vec3 inflatedMove = movement.add(0.0, Math.max(step - inflation, 0.0), 0.0);
         AABB inflatedBox = box.inflate(inflation);
 
-        @SuppressWarnings("unchecked") List<ConvexPolygonc> polys = ((EntityShipCollisionUtilsInvoker) (Object) EntityShipCollisionUtils.INSTANCE).getShipPolygonsCollidingWithEntity$weather(entity, inflatedMove, inflatedBox, (ClientLevel) level);
-
+        List<ConvexPolygonc> polys = ((EntityShipCollisionUtilsInvoker) (Object) EntityShipCollisionUtils.INSTANCE).getShipPolygonsCollidingWithEntity$weather(entity, inflatedMove, inflatedBox, (ClientLevel) level);
         Vec3 finalMove = movement;
         if (!polys.isEmpty()) {
             Pair<Vector3dc, Long> result = ValkyrienSkiesMod.vsCore.getEntityPolygonCollider().adjustEntityMovementForPolygonCollisions(toJOML(inflatedMove), toJOML(inflatedBox), step, polys);
