@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
 
+
 @Mixin(MagmaBlock.class)
 public abstract class MixinMagmaBlock extends Block {
 
