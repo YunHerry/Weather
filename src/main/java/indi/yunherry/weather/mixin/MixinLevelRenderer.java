@@ -1,6 +1,8 @@
 package indi.yunherry.weather.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import indi.yunherry.weather.AnimationController;
+import indi.yunherry.weather.GlobalContext;
 import indi.yunherry.weather.RayThreadPool;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.renderer.ParticleRenderer;
@@ -22,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 @Mixin(value = LevelRenderer.class,priority = 1001)
 public abstract class MixinLevelRenderer {
@@ -40,7 +43,9 @@ public abstract class MixinLevelRenderer {
     public void weather$injectCustomWeatherRendering_renderLevel(PoseStack stack, float partialTick, long l, boolean flag, Camera camera, GameRenderer renderer, LightTexture texture, Matrix4f projMat, CallbackInfo ci)
     {
 //        WorldContext.renderer.renderWeather(texture, partialTick, (float) camera.getPosition().x, (float) camera.getPosition().y, (float) camera.getPosition().z,this.getTicks(),this.rainSizeX,this.rainSizeZ);
-        ParticleRenderer.update();
+//        System.out.printf(Locale.US, "fps=%d  partial=%.3f%n",
+//                Minecraft.getInstance().getFps(),
+//                AnimationController.getAnimationTick());
         WorldContext.renderers.forEach(item->{
             if (item.isConditionalRendering()) {
                 if(item.getRenderer().isRender()) {
@@ -50,6 +55,8 @@ public abstract class MixinLevelRenderer {
                 item.getRenderer().render();
             }
             if(item.getRenderer() instanceof WeatherRenderer) {
+//        log.info("当前partialTick: {}",partialTick);
+//                System.out.println("当前partialTick: " + partialTick + " 自己的partialTick: " + AnimationController.getPartialTick());
                 ((WeatherRenderer) item.getRenderer()).renderWeather(texture,partialTick,ticks);
             }
         });

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import indi.yunherry.weather.AnimationController;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.client.particle.RainParticle;
@@ -48,8 +49,6 @@ public class RainRenderer extends WeatherRenderer {
 
     @Override
     public void tick() {
-        if (mc == null) return;
-        if (!level.isRaining()) return;
         //角度
         //正值朝向东
         //22.5f可以作为暴风雨的最大角度
@@ -100,7 +99,8 @@ public class RainRenderer extends WeatherRenderer {
 
         Biome biome = this.mc.level.getBiome(camPos).value();
         boolean isRainPrecipitation = biome.getPrecipitationAt(camPos) == Biome.Precipitation.RAIN;
-        if (isRainPrecipitation) {
+        //生成粒子
+        if (isRainPrecipitation && level.isRaining()) {
             float rainIntensity = this.mc.level.getRainLevel(1.0F);
             //TODO isThundering?
 //            int lifeSpanBase = level.isThundering() ? 20 : 10;
@@ -131,8 +131,6 @@ public class RainRenderer extends WeatherRenderer {
                 }
             }
         }
-//        System.out.println( this.precipitationQuads.size());
-//        System.out.println("minx: " + minX + " minY: " + minY + " minZ: " + minZ + " maxX: " + maxX + " maxY: " + maxY + " maxZ: " + maxZ);
         AABB box = new AABB(minX, camPos.getY() + 4, minZ, maxX, maxY, maxZ);
         var rain = this.precipitationQuads.entrySet().iterator();
         while (rain.hasNext()) {
@@ -155,7 +153,6 @@ public class RainRenderer extends WeatherRenderer {
                 if (Objects.nonNull(hitResult) && hitResult.getType() != HitResult.Type.MISS) {
                     //是击中的方块中心
                     BlockPos downPos = hitResult.getBlockPos();
-//                    System.out.println(downPos);
                     BlockState blockstate = levelreader.getBlockState(downPos);
                     FluidState fluidstate = levelreader.getFluidState(downPos);
                     VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
@@ -223,7 +220,6 @@ public class RainRenderer extends WeatherRenderer {
 
     @Override
     public void renderWeather(LightTexture texture, float partialTick, int ticks) {
-        if (!level.isRaining()) return;
         Holder<Biome> biomeHolder = level.getBiome(camPos);
         int color = biomeHolder.value().getWaterColor();
         float r = ((color >> 16) & 0xFF) / 255.0f;

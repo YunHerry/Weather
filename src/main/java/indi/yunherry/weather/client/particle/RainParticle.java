@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import indi.yunherry.weather.AnimationController;
 import indi.yunherry.weather.RayThreadPool;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -152,6 +153,7 @@ public class RainParticle {
         Vector3f adjustedCamPos = new Vector3f((float) camX, (float) camY, (float) camZ).sub(this.position).rotate(inverseRotation).add(this.position);
         float angleToCam = (float) Mth.atan2(this.position.x - adjustedCamPos.x, this.position.z - adjustedCamPos.z);
         //旋转
+        float animationTick = AnimationController.getAnimationTick();
         stack.mulPose(inverseRotation.invert());
         stack.mulPose(Axis.YP.rotation(angleToCam));
         Matrix4f mat = stack.last().pose();
@@ -161,8 +163,8 @@ public class RainParticle {
         float u0 = 0.5F - width / 2.0F * 0.5F;
         consumer.vertex(mat, width / 2.0F, 0.0F, 0.0F).uv(u0, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();
         consumer.vertex(mat, -width / 2.0F, 0.0F, 0.0F).uv(u1, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();
-        consumer.vertex(mat, -width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u1, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha).uv2(packedLight).endVertex();
-        consumer.vertex(mat, width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u0, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha).uv2(packedLight).endVertex();
+        consumer.vertex(mat, -width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u1, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha*partialTick).uv2(packedLight).endVertex();
+        consumer.vertex(mat, width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u0, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha*partialTick).uv2(packedLight).endVertex();
     }
 
 }
