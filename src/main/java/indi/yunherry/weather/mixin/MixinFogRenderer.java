@@ -12,6 +12,7 @@ import indi.yunherry.weather.loader.LoaderConfig;
 import indi.yunherry.weather.loader.LoaderManager;
 import indi.yunherry.weather.renderer.FogRenderer$Weather;
 import indi.yunherry.weather.renderer.ParticleRenderer;
+import indi.yunherry.weather.utils.ColorMapUtils;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -207,7 +208,7 @@ public abstract class MixinFogRenderer {
             BlockPos sample = BlockPos.containing(x, y, z);
 
             LoaderConfig loaderConfig = LoaderConfig.builder().rain(level.getRainLevel(0)).skyLight((int) lightLevel).build();
-            ResourceLocation biomeRL = getAccurateBiomeID(level, sample);
+            ResourceLocation biomeRL = ColorMapUtils.getAccurateBiomeID(level, sample);
 
             BiomeFogColorLoader loader = LoaderManager.getLoader(BiomeFogColorLoader.BIOME_FOG_COLOR_LOADER, BiomeFogColorLoader.class);
             if (loader != null) {
@@ -223,21 +224,4 @@ public abstract class MixinFogRenderer {
         }
         return original.call(center, fetcher);
     }
-
-    // 辅助方法 - 需要添加到类中
-    private static ResourceLocation getAccurateBiomeID(Level level, BlockPos pos) {
-        int quartX = QuartPos.fromBlock(pos.getX());
-        int quartY = QuartPos.fromBlock(pos.getY());
-        int quartZ = QuartPos.fromBlock(pos.getZ());
-
-        LevelChunk chunk = level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
-        Holder<Biome> holder = chunk.getNoiseBiome(quartX, quartY, quartZ);
-
-        Registry<Biome> biomeRegistry = level.registryAccess().registryOrThrow(Registries.BIOME);
-        return biomeRegistry.getResourceKey(holder.value())
-                .map(ResourceKey::location)
-                .orElse(new ResourceLocation("minecraft", "plains"));
-    }
-
-
 }

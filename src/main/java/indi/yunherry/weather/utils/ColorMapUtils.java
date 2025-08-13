@@ -3,6 +3,16 @@ package indi.yunherry.weather.utils;
 import com.mojang.blaze3d.platform.NativeImage;
 import indi.yunherry.weather.loader.BiomeColorConfigData;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.QuartPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.joml.Vector4f;
 
 import java.io.File;
@@ -335,5 +345,18 @@ public class ColorMapUtils {
         File gameDir = Minecraft.getInstance().gameDirectory;
         String cleanNamespace = sanitizeFileName(namespace);
         return Paths.get(gameDir.getAbsolutePath(), "weather", "debug", cleanNamespace);
+    }
+    public static ResourceLocation getAccurateBiomeID(Level level, BlockPos pos) {
+        int quartX = QuartPos.fromBlock(pos.getX());
+        int quartY = QuartPos.fromBlock(pos.getY());
+        int quartZ = QuartPos.fromBlock(pos.getZ());
+
+        LevelChunk chunk = level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
+        Holder<Biome> holder = chunk.getNoiseBiome(quartX, quartY, quartZ);
+
+        Registry<Biome> biomeRegistry = level.registryAccess().registryOrThrow(Registries.BIOME);
+        return biomeRegistry.getResourceKey(holder.value())
+                .map(ResourceKey::location)
+                .orElse(new ResourceLocation("minecraft", "plains"));
     }
 }

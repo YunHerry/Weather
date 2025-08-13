@@ -13,6 +13,7 @@ public class CompatMixinPlugin implements IMixinConfigPlugin {
     public static final String VS = "valkyrienskies";
     public static final String VS_MIXIN_PARTICLE = "indi.yunherry.weather.mixin.MixinParticle";
     public static final String VS_MIXIN_ACCESS = "indi.yunherry.weather.mixin.InvokerEntityShipCollisionUtils";
+
     @Override
     public void onLoad(String mixinPackage) {
 
@@ -28,7 +29,7 @@ public class CompatMixinPlugin implements IMixinConfigPlugin {
         if (VS_MIXIN_PARTICLE.equals(mixinClassName)) {
 
             return FMLLoader.getLoadingModList().getModFileById(VS) != null &&
-                   FMLLoader.getLoadingModList().getModFileById("asyncparticles") == null;
+                    FMLLoader.getLoadingModList().getModFileById("asyncparticles") == null;
         }
         if (VS_MIXIN_ACCESS.equals(mixinClassName)) {
 

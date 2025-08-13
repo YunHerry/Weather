@@ -2,9 +2,7 @@ package indi.yunherry.weather.loader;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mojang.blaze3d.platform.NativeImage;
-import indi.yunherry.weather.Weather;
-import indi.yunherry.weather.event.ColormapData;
+
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -12,11 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
+
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,19 +26,6 @@ public class FileLoaderUtils {
         FileLoaderUtils.resourceManager = resourceManager;
     }
 
-    public static <T> Map<ResourceLocation, T> loadFiles(String namespace, Predicate<ResourceLocation> filterFn, Function<Map.Entry<ResourceLocation, Resource>, T> processor) {
-        Map<ResourceLocation, T> result = new HashMap<>();
-        System.out.println("Loading ");
-        log.info("Loading Namespace Files: {}", namespace);
-        Map<ResourceLocation, Resource> resources = resourceManager.listResources("colormaps", filterFn);
-        for (Map.Entry<ResourceLocation, Resource> entry : resources.entrySet()) {
-            T processed = processor.apply(entry);
-            if (processed != null) {
-                result.put(entry.getKey(), processed);
-            }
-        }
-        return result;
-    }
 
     /**
      * 加载并处理 JSON 文件
@@ -51,18 +35,13 @@ public class FileLoaderUtils {
      * @param processor 处理 JsonObject 的函数
      * @return 处理后的结果映射
      */
-    public static void loadJsonFiles(
-            String namespace,
-            Predicate<JsonObject> filterFn,
-            Consumer<JsonObject> processor) {
+    public static void loadJsonFiles(String namespace, Predicate<JsonObject> filterFn, Consumer<JsonObject> processor) {
 
         System.out.println("Loading JSON files from namespace: " + namespace);
         log.info("Loading JSON Files from Namespace: {}", namespace);
 
         // 首先获取所有资源文件
-        Map<ResourceLocation, Resource> resources = resourceManager.listResources(
-                namespace,
-                resourceLocation -> resourceLocation.getPath().endsWith(".json") // 只加载JSON文件
+        Map<ResourceLocation, Resource> resources = resourceManager.listResources("biome", resourceLocation -> resourceLocation.getPath().endsWith(".json") // 只加载JSON文件
         );
 
         for (Map.Entry<ResourceLocation, Resource> entry : resources.entrySet()) {
@@ -79,13 +58,13 @@ public class FileLoaderUtils {
             }
         }
     }
+
     /**
      * 重载方法：允许自定义文件扩展名过滤
      */
     public static <T> Map<ResourceLocation, T> loadJsonFiles(String namespace, Predicate<ResourceLocation> resourceFilter, Predicate<JsonObject> jsonFilter, Function<Map.Entry<ResourceLocation, JsonObject>, T> processor) {
 
         Map<ResourceLocation, T> result = new HashMap<>();
-        System.out.println("Loading JSON files from namespace: " + namespace);
         log.info("Loading JSON Files from Namespace: {}", namespace);
 
         // 使用自定义的资源过滤器
@@ -123,9 +102,6 @@ public class FileLoaderUtils {
         }
     }
 
-    /**
-     * 简单的 Map.Entry 实现
-     */
     private static class JsonEntry implements Map.Entry<ResourceLocation, JsonObject> {
         private final ResourceLocation key;
         private JsonObject value;
@@ -152,41 +128,4 @@ public class FileLoaderUtils {
             return oldValue;
         }
     }
-//        try {
-//            Map<ResourceLocation, Resource> resources = resourceManager.listResources(
-//                    "colormaps",
-//                    loc -> loc.getNamespace().equals("weather") && loc.getPath().endsWith(".png")
-//            );
-//
-//            for (Map.Entry<ResourceLocation, Resource> entry : resources.entrySet()) {
-//                System.out.println(entry.getKey());
-//                ResourceLocation pngLoc = entry.getKey();
-//                Resource pngRes = entry.getValue();
-//
-//                String basePath = pngLoc.getPath().substring(0, pngLoc.getPath().length() - 4); // remove .png
-//                ResourceLocation jsonLoc = new ResourceLocation(pngLoc.getNamespace(), basePath + ".json");
-//
-//                Optional<Resource> jsonRes = resourceManager.getResource(jsonLoc);
-//
-//                NativeImage image;
-//                try (InputStream pngStream = pngRes.open()) {
-//                    image = NativeImage.read(pngStream);
-//                }
-//
-//                JsonObject config = new JsonObject();
-//                if (jsonRes.isPresent()) {
-//                    try (InputStream jsonStream = jsonRes.get().open();
-//                         InputStreamReader reader = new InputStreamReader(jsonStream)) {
-//                        config = JsonParser.parseReader(reader).getAsJsonObject();
-//                    }
-//                }
-//                Map<ResourceLocation, Integer> biomeIdMap = parseBiomeIdMap(config);
-//                result.put(pngLoc, new ColormapData(pngLoc, image, config, biomeIdMap));
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-//        return result;
-//    }
 }

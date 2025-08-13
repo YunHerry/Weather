@@ -46,6 +46,7 @@ public class Weather {
         version = ModLoadingContext.get().getActiveContainer().getModInfo().getVersion();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         PARTICLES.register(modEventBus);
+        Sounds.SOUND_EVENTS.register(modEventBus);
         modEventBus.addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(WorldContext.class);

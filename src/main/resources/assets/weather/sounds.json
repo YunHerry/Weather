@@ -1,0 +1,16 @@
+{
+  "wind": {
+    "subtitle": "windDirection.weather.wind",
+    "sounds": [
+      {
+        "name": "weather:wind",
+        "volume": 0.8,
+        "pitch": 1.0,
+        "weight": 1,
+        "stream": false,
+        "attenuation_distance": 16,
+        "preload": true
+      }
+    ]
+  }
+}

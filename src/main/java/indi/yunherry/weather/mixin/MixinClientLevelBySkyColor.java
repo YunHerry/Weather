@@ -3,12 +3,11 @@ package indi.yunherry.weather.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import indi.yunherry.weather.GlobalContext;
-import indi.yunherry.weather.event.ColorMapManager;
-import indi.yunherry.weather.event.ColorMapResourceLocationConstant;
-import indi.yunherry.weather.loader.BiomeFogColorLoader;
+
 import indi.yunherry.weather.loader.BiomeSkyColorLoader;
 import indi.yunherry.weather.loader.LoaderConfig;
 import indi.yunherry.weather.loader.LoaderManager;
+import indi.yunherry.weather.utils.ColorMapUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -39,7 +38,7 @@ public abstract class MixinClientLevelBySkyColor extends Level {
         Vec3 modified = CubicSampler.gaussianSampleVec3(GlobalContext.camPos.getCenter(), (x, y, z) -> {
             BlockPos sample = BlockPos.containing(x, y, z);
             LoaderConfig loaderConfig = LoaderConfig.builder().rain(level.getRainLevel(0)).build();
-            ResourceLocation biomeRL = ColorMapManager.getAccurateBiomeID(level, sample);
+            ResourceLocation biomeRL = ColorMapUtils.getAccurateBiomeID(level, sample);
 //            Vector4f rgba = ColorMapManager.getColorReverse(ColorMapResourceLocationConstant.SKY, ColorMapManager.getBiomeIndex(ColorMapResourceLocationConstant.SKY, biomeRL), (float) yAxis);
             BiomeSkyColorLoader loader = LoaderManager.getLoader(BiomeSkyColorLoader.BIOME_SKY_COLOR_LOADER, BiomeSkyColorLoader.class);
             if (loader != null) {

@@ -1,9 +1,11 @@
 package indi.yunherry.weather.renderer;
 
+import indi.yunherry.weather.Sounds;
 import indi.yunherry.weather.WindDirectionType;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.factory.factory.RendererFactory;
+import indi.yunherry.weather.utils.SoundUtils;
 import net.minecraft.util.Mth; // 引入 Mth 用于插值计算
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +61,7 @@ public class WindRenderer extends ParticleRenderer {
             log.info("Wind direction changed from {} to {}. Starting transition.", this.lastWindDirection, windDirection);
             // 更新最后记录的风向
             this.lastWindDirection = windDirection;
+            SoundUtils.playWindInDirection(windDirection,20,40f,1.0f);
         }
 
         // 3. 如果正在播放动画，则更新动画进度
