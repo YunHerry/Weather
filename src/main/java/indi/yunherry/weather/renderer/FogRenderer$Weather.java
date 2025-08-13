@@ -27,7 +27,7 @@ public class FogRenderer$Weather extends WeatherRenderer {
         // 雾浓度控制逻辑
 
         if (isRaining && partialTick <= 1f) {
-            partialTick = Math.min(partialTick + 0.025f, 1f); // 雾慢慢加浓
+            partialTick = Math.min(partialTick + 0.25f, 1f); // 雾慢慢加浓
         } else if (!isRaining && partialTick > 0f) {
             partialTick = Math.max(partialTick - 0.025f, 0f);  // 雾慢慢减淡
         }
@@ -43,8 +43,8 @@ public class FogRenderer$Weather extends WeatherRenderer {
     }
 
     public static boolean isShouldRunning() {
-        return false;
-//        return isRaining;
+//        return false;
+        return isRaining;
     }
 
     public float getPartialTick() {

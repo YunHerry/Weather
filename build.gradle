@@ -155,7 +155,7 @@ dependencies {
 //    compileOnly "curse.maven:eureka-654384:5321630"
 //    runtimeOnly fg.deobf('maven.modrinth:eureka:1.20.1-forge-1.5.1-beta.3')
       //compact
-    implementation fg.deobf("maven.modrinth:distanthorizons:2.3.2-b-1.20.1")
+//    implementation fg.deobf("maven.modrinth:distanthorizons:2.3.2-b-1.20.1")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 

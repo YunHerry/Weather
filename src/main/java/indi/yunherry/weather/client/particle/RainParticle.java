@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import indi.yunherry.weather.AnimationController;
 import indi.yunherry.weather.RayThreadPool;
+import indi.yunherry.weather.utils.ShaderUtils;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,6 +37,16 @@ public class RainParticle {
         map.put(Biome.Precipitation.SNOW, new ResourceLocation("textures/environment/snow.png"));
         return map.build();
     });
+
+    public int getRainSoundTime() {
+        return rainSoundTime++;
+    }
+
+    public void resetRainSoundTime() {
+        rainSoundTime = 0;
+    }
+
+    private int rainSoundTime;
     private static final Logger log = LoggerFactory.getLogger(RainParticle.class);
     private final Biome.Precipitation precipitation;
     //一个对象绑定一个已经写好的位置
@@ -54,7 +65,7 @@ public class RainParticle {
     private int tickCount;
     private float widthO;
     private float width;
-    private float alpha = 1.0f;
+    private float alpha;
     private int rayLength;
 
     public BlockHitResult getHitResult() {
@@ -71,12 +82,12 @@ public class RainParticle {
         this.zRot = zRot;
         this.lifeSpan = lifeSpan;
         this.initialWidth = Math.max(0.1F, initialWidth);// Mth.clamp(initialWidth, 0.1F, MAX_WIDTH);
-        this.rayLength = (camY > 0 ? position.getY() - camY : position.getY() + Math.abs(camY)) + 10;
+//        this.rayLength = (camY > 0 ? position.getY() - camY : position.getY() + Math.abs(camY)) + 10;
         // 计算反向方向向量
         float yawRadians = -this.yRot;
         float pitchRadians = this.xRot - (float) Math.PI / 2.0F;
         float pitchCos = Mth.cos(pitchRadians);
-
+        this.alpha = ShaderUtils.areShadersRunning() ? 1.0f : 0.5f;
         Vec3 reverseDir = new Vec3(-Mth.sin(yawRadians) * pitchCos, -Mth.sin(pitchRadians), -Mth.cos(yawRadians) * pitchCos).normalize();  // 单位向量
 
 // 目标终点是 position，反推出 start 使其 Y = 255
@@ -120,11 +131,7 @@ public class RainParticle {
             float pitchRadians = this.xRot - (float) Math.PI / 2.0F;
             float pitchCos = Mth.cos(pitchRadians);
 
-            Vec3 direction = new Vec3(
-                    Mth.sin(yawRadians) * pitchCos,
-                    Mth.sin(pitchRadians),
-                    Mth.cos(yawRadians) * pitchCos
-            ).normalize();
+            Vec3 direction = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).normalize();
             Vec3 end = origin.add(direction.scale(32.0));
             ClipContext context = new ClipContext(origin, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
             BlockHitResult result = this.raycaster.apply(context);
@@ -138,6 +145,7 @@ public class RainParticle {
         if (this.tickCount < this.lifeSpan - 20)
             this.width = this.initialWidth * Math.min(1.0F, (float) this.tickCount / 20.0F);
         else this.width = this.initialWidth * Math.min(1.0F, ((float) this.lifeSpan - (float) this.tickCount) / 20.0F);
+
     }
 
     //TODO: 贴图左右扰动
@@ -153,7 +161,7 @@ public class RainParticle {
         Vector3f adjustedCamPos = new Vector3f((float) camX, (float) camY, (float) camZ).sub(this.position).rotate(inverseRotation).add(this.position);
         float angleToCam = (float) Mth.atan2(this.position.x - adjustedCamPos.x, this.position.z - adjustedCamPos.z);
         //旋转
-        float animationTick = AnimationController.getAnimationTick();
+        float animationTick = AnimationController.getAnimationPartialTick(partialTick);
         stack.mulPose(inverseRotation.invert());
         stack.mulPose(Axis.YP.rotation(angleToCam));
         Matrix4f mat = stack.last().pose();
@@ -163,8 +171,8 @@ public class RainParticle {
         float u0 = 0.5F - width / 2.0F * 0.5F;
         consumer.vertex(mat, width / 2.0F, 0.0F, 0.0F).uv(u0, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();
         consumer.vertex(mat, -width / 2.0F, 0.0F, 0.0F).uv(u1, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();
-        consumer.vertex(mat, -width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u1, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha*partialTick).uv2(packedLight).endVertex();
-        consumer.vertex(mat, width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u0, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha*partialTick).uv2(packedLight).endVertex();
+        consumer.vertex(mat, -width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u1, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha).uv2(packedLight).endVertex();
+        consumer.vertex(mat, width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u0, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha).uv2(packedLight).endVertex();
     }
 
 }

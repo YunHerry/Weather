@@ -8,6 +8,7 @@ import indi.yunherry.weather.AnimationController;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.client.particle.RainParticle;
+import indi.yunherry.weather.utils.RenderUtils;
 import indi.yunherry.weather.utils.ShaderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -17,6 +18,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -54,7 +57,8 @@ public class RainRenderer extends WeatherRenderer {
         //22.5f可以作为暴风雨的最大角度
         //斜角会导致aabb区域需要扩大,因为当出现斜角后aabb不是中心了
         //TODO: 实现斜角雨/暴风雪
-        float xRot = (0f) * ((float) Math.PI / 180.0F);
+
+        float xRot = (22.5f) * ((float) Math.PI / 180.0F);
         float zRot = (0) * ((float) Math.PI / 180.0F);
 //        switch (WorldContext.windDirection) {
 //            case NORTH -> {
@@ -101,7 +105,8 @@ public class RainRenderer extends WeatherRenderer {
         boolean isRainPrecipitation = biome.getPrecipitationAt(camPos) == Biome.Precipitation.RAIN;
         //生成粒子
         if (isRainPrecipitation && level.isRaining()) {
-            float rainIntensity = this.mc.level.getRainLevel(1.0F);
+//            float rainIntensity = this.mc.level.getRainLevel(0);
+            float rainIntensity = 0.3f;
             //TODO isThundering?
 //            int lifeSpanBase = level.isThundering() ? 20 : 10;
             int lifeSpanBase = 20;
@@ -135,6 +140,7 @@ public class RainRenderer extends WeatherRenderer {
         var rain = this.precipitationQuads.entrySet().iterator();
         while (rain.hasNext()) {
             var entry = rain.next();
+            ThreadLocalRandom random = ThreadLocalRandom.current();
             RainParticle quad = entry.getValue();
             //渲染雨滴的开始位置
             BlockPos pos = entry.getKey();
@@ -146,6 +152,7 @@ public class RainRenderer extends WeatherRenderer {
             }
             quad.tick();
             //粒子生成不正确,侧面
+            if (random.nextInt(100) < 95) continue;
             if (isRainPrecipitation) {
                 Level levelreader = this.mc.level;
                 BlockHitResult hitResult = quad.getHitResult();
@@ -156,7 +163,7 @@ public class RainRenderer extends WeatherRenderer {
                     BlockState blockstate = levelreader.getBlockState(downPos);
                     FluidState fluidstate = levelreader.getFluidState(downPos);
                     VoxelShape voxelshape = blockstate.getCollisionShape(levelreader, downPos);
-                    ThreadLocalRandom random = ThreadLocalRandom.current();
+
                     ParticleOptions particleoptions = !fluidstate.is(FluidTags.LAVA) && !blockstate.is(Blocks.MAGMA_BLOCK) && !CampfireBlock.isLitCampfire(blockstate) ? ParticleTypes.RAIN : ParticleTypes.SMOKE;
                     double surfaceHeight = voxelshape.max(Direction.Axis.Y, random.nextDouble(), random.nextDouble());
                     double fluidHeight = fluidstate.getHeight(levelreader, downPos);
@@ -201,8 +208,18 @@ public class RainRenderer extends WeatherRenderer {
                             baseZ += random.nextDouble() * randomSpread;
                         }
                     }
-
+                    //粒子数量不合理
                     levelreader.addParticle(particleoptions, baseX, baseY + (hitFace == Direction.UP ? 0 : random.nextDouble() * 0.3), baseZ, 0.0, 0.0, 0.0);
+//                    //声音不太对
+                    //TODO: 雨的声音可作海浪
+//                    if (random.nextInt(2) < quad.getRainSoundTime()) {
+//                        quad.resetRainSoundTime();
+//                        if (downPos.getY() > camPos.getY() + 1) {
+//                            level.playLocalSound(downPos, SoundEvents.WEATHER_RAIN_ABOVE, SoundSource.WEATHER, 0.1F, 0.5F, false);
+//                        } else {
+//                            level.playLocalSound(downPos, SoundEvents.WEATHER_RAIN, SoundSource.WEATHER, 0.2F, 1.0F, false);
+//                        }
+//                    }
                     if (fluidstate.isSourceOfType(Fluids.WATER) && ThreadLocalRandom.current().nextInt(10000) > 9800) {
                         level.addParticle(WorldContext.particleBeans.get("ripple").get(), baseX, downPos.getY() + 1, baseZ, 0.0, 0.0, 0.0);
                     }
@@ -220,11 +237,7 @@ public class RainRenderer extends WeatherRenderer {
 
     @Override
     public void renderWeather(LightTexture texture, float partialTick, int ticks) {
-        Holder<Biome> biomeHolder = level.getBiome(camPos);
-        int color = biomeHolder.value().getWaterColor();
-        float r = ((color >> 16) & 0xFF) / 255.0f;
-        float g = ((color >> 8) & 0xFF) / 255.0f;
-        float b = (color & 0xFF) / 255.0f;
+        Vector3f rgb = RenderUtils.getBiomeColor(level,camPos);
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder builder = tesselator.getBuilder();
         RenderSystem.depthMask(Minecraft.useShaderTransparency() || ShaderUtils.areShadersRunning());
@@ -246,7 +259,7 @@ public class RainRenderer extends WeatherRenderer {
                 for (RainParticle quad : entry.getValue()) {
                     stack.pushPose();
                     int packedLight = getLightColor(this.mc.level, quad.getBlockPos());
-                    quad.render(stack, builder, partialTick, packedLight, camPos.getX(), camPos.getY(), camPos.getZ(), r, g, b);
+                    quad.render(stack, builder, partialTick, packedLight, camPos.getX(), camPos.getY(), camPos.getZ(), rgb.x, rgb.y, rgb.z);
                     stack.popPose();
                 }
                 tesselator.end();

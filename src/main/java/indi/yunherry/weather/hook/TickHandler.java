@@ -21,7 +21,7 @@ public class TickHandler {
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
-            AnimationController.setLastTickStart(System.nanoTime());
+            AnimationController.tick(Minecraft.getInstance().level);
         }
     }
 }

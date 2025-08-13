@@ -15,7 +15,11 @@ import org.valkyrienskies.mod.common.util.EntityShipCollisionUtils;
 
 
 import java.util.List;
-
+/**
+ *
+ * getShipPolygonsCollidingWithEntity accessor
+ *
+ * */
 @Mixin(EntityShipCollisionUtils.class)
 public abstract class InvokerEntityShipCollisionUtils implements EntityShipCollisionUtilsInvoker {
     @Unique

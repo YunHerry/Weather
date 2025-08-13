@@ -9,15 +9,18 @@
     "InvokerEntityShipCollisionUtils",
     "MixinCampfireBlock",
     "MixinCommands",
-    "MixinLevelRenderer",
+    "MixinLevelRendererByWeather",
     "MixinMagmaBlock",
     "MixinSeagrass"
   ],
   "client": [
     "MixinBaseAshSmokeParticle",
+    "MixinClientLevelBySkyColor",
     "MixinDripParticle",
-    "MixinParticle",
-    "MixinParticleEngine",
+    "MixinFogRenderer",
+    "MixinGameRendererByGlobalContext",
+    "MixinLevelRendererByClouds",
+    "MixinParticleByVS",
     "MixinWaterDropParticle"
   ],
   "injectors": {

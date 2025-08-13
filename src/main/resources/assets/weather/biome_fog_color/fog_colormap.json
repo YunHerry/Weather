@@ -1,0 +1,272 @@
+{
+  "default_color": "#6FA44C",
+  "loader": "BiomeFogColorLoader",
+  "step": 256,
+  "data": {
+    "minecraft:birch_forest": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:sunflower_plains": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:flower_forest": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:old_growth_birch_forest": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:meadow": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:plains": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:forest": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:windswept_hills": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:windswept_forest": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:windswept_gravelly_hills": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:stony_shore": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:river": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:beach": {
+      "startColor": "#4c535b",
+      "midColor": "#9bd9fb",
+      "endColor": "#222222"
+    },
+    "minecraft:badlands": {
+      "startColor": "#a65d29",
+      "midColor": "#ffb156",
+      "endColor": "#222222"
+    },
+    "minecraft:eroded_badlands": {
+      "startColor": "#a65d29",
+      "midColor": "#ffb156",
+      "endColor": "#222222"
+    },
+    "minecraft:wooded_badlands": {
+      "startColor": "#a65d29",
+      "midColor": "#ffb156",
+      "endColor": "#222222"
+    },
+    "minecraft:desert": {
+      "startColor": "#ffe894",
+      "midColor": "#ffe295",
+      "endColor": "#222222"
+    },
+    "minecraft:cherry_grove": {
+      "startColor": "#4c535b",
+      "midColor": "#edb0f0",
+      "endColor": "#222222"
+    },
+    "minecraft:cold_ocean": {
+      "startColor": "#4c535b",
+      "midColor": "#d3dcf5",
+      "endColor": "#222222"
+    },
+    "minecraft:deep_cold_ocean": {
+      "startColor": "#4c535b",
+      "midColor": "#d3dcf5",
+      "endColor": "#222222"
+    },
+    "minecraft:dark_forest": {
+      "startColor": "#4c535b",
+      "midColor": "#84add7",
+      "endColor": "#222222"
+    },
+    "minecraft:deep_dark": {
+      "startColor": "#0da3a6",
+      "midColor": "#0da3a6",
+      "endColor": "#0da3a6"
+    },
+    "minecraft:dripstone_caves": {
+      "startColor": "#d4925a",
+      "midColor": "#ffb74d",
+      "endColor": "#5e2c01"
+    },
+    "minecraft:jungle": {
+      "startColor": "#3a6363",
+      "midColor": "#75d4bb",
+      "endColor": "#32373c"
+    },
+    "minecraft:sparse_jungle": {
+      "startColor": "#3a6363",
+      "midColor": "#75d4bb",
+      "endColor": "#32373c"
+    },
+    "minecraft:bamboo_jungle": {
+      "startColor": "#3a6363",
+      "midColor": "#75d4bb",
+      "endColor": "#32373c"
+    },
+    "minecraft:lush_caves": {
+      "startColor": "#42b266",
+      "midColor": "#42b266",
+      "endColor": "#01561d"
+    },
+    "minecraft:mangrove_swamp": {
+      "startColor": "#52635e",
+      "midColor": "#73bc87",
+      "endColor": "#32373c"
+    },
+    "minecraft:mushroom_fields": {
+      "startColor": "#4c535b",
+      "midColor": "#73bc87",
+      "endColor": "#32373c"
+    },
+    "minecraft:ocean": {
+      "startColor": "#4c535b",
+      "midColor": "#7cb1ff",
+      "endColor": "#32373c"
+    },
+    "minecraft:deep_ocean": {
+      "startColor": "#4c535b",
+      "midColor": "#7cb1ff",
+      "endColor": "#32373c"
+    },
+    "minecraft:pale_garden": {
+      "startColor": "#4d5054",
+      "midColor": "#b0afae",
+      "endColor": "#32373c"
+    },
+    "minecraft:savanna": {
+      "startColor": "#66503a",
+      "midColor": "#f7cb8f",
+      "endColor": "#aed581"
+    },
+    "minecraft:savanna_plateau": {
+      "startColor": "#66503a",
+      "midColor": "#f7cb8f",
+      "endColor": "#aed581"
+    },
+    "minecraft:windswept_savanna": {
+      "startColor": "#66503a",
+      "midColor": "#f7cb8f",
+      "endColor": "#aed581"
+    },
+    "minecraft:snowy_plains": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:snowy_slopes": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:snowy_beach": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:snowy_taiga": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:frozen_river": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:frozen_ocean": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:frozen_peaks": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:deep_frozen_ocean": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:ice_spikes": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:jagged_peaks": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:grove": {
+      "startColor": "#747d92",
+      "midColor": "#c1edfc",
+      "endColor": "#32373c"
+    },
+    "minecraft:swamp": {
+      "startColor": "#396047",
+      "midColor": "#58c571",
+      "endColor": "#32373c"
+    },
+    "minecraft:taiga": {
+      "startColor": "#4c535b",
+      "midColor": "#c1f1fb",
+      "endColor": "#32373c"
+    },
+    "minecraft:old_growth_pine_taiga": {
+      "startColor": "#4c535b",
+      "midColor": "#c1f1fb",
+      "endColor": "#32373c"
+    },
+    "minecraft:old_growth_spruce_taiga": {
+      "startColor": "#4c535b",
+      "midColor": "#c1f1fb",
+      "endColor": "#32373c"
+    },
+    "minecraft:warm_ocean": {
+      "startColor": "#4c535b",
+      "midColor": "#97bde4",
+      "endColor": "#32373c"
+    },
+    "minecraft:lukewarm_ocean": {
+      "startColor": "#4c535b",
+      "midColor": "#97bde4",
+      "endColor": "#32373c"
+    },
+    "minecraft:deep_lukewarm_ocean": {
+      "startColor": "#4c535b",
+      "midColor": "#97bde4",
+      "endColor": "#32373c"
+    }
+  }
+}

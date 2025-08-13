@@ -25,16 +25,12 @@ import java.util.function.Function;
 public abstract class MixinWaterDropParticle extends TextureSheetParticle {
     @Unique
     private static final float MAX_LENGTH = 32.0F;
-    private static final Logger log = LoggerFactory.getLogger(MixinWaterDropParticle.class);
     @Unique
     private final Function<ClipContext, BlockHitResult> raycaster = level::clip;
     protected MixinWaterDropParticle(ClientLevel p_108328_, double p_108329_, double p_108330_, double p_108331_, double p_108332_, double p_108333_, double p_108334_, Function<ClipContext, BlockHitResult> raycaster) {
         super(p_108328_, p_108329_, p_108330_, p_108331_, p_108332_, p_108333_, p_108334_);
     }
 
-    protected MixinWaterDropParticle(ClientLevel p_108323_, double p_108324_, double p_108325_, double p_108326_, Function<ClipContext, BlockHitResult> raycaster) {
-        super(p_108323_, p_108324_, p_108325_, p_108326_);
-    }
     @Overwrite
     public @NotNull ParticleRenderType getRenderType() {
         return ParticleRenderType.PARTICLE_SHEET_OPAQUE;

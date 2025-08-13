@@ -1,5 +1,6 @@
 package indi.yunherry.weather.event;
 
+import indi.yunherry.weather.AnimationController;
 import indi.yunherry.weather.WindDirectionType;
 import indi.yunherry.weather.WorldContext;
 import net.minecraft.ChatFormatting;
@@ -76,6 +77,42 @@ public class DebugEvent {
                 false
         );
 
+
+    }
+    @SubscribeEvent
+    public static void onRenderFPSInfo(RenderGuiEvent.Post event) {
+        if (!WorldContext.isDebugMode) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.options.hideGui || mc.screen != null) return;
+        Font font = mc.font;
+        GuiGraphics guiGraphics = event.getGuiGraphics();
+        LocalPlayer player = mc.player;
+        if (player == null) return;
+        Level level = player.level();
+        BlockPos pos = player.blockPosition();
+        Component text = Component.literal(String.format("FPS: %s",  Minecraft.getInstance().getFps()));
+        Component text1 = Component.literal(String.format("雨PartialTick: %f", AnimationController.getAnimationPartialTick(event.getPartialTick())));
+        // 计算屏幕位置（物品栏上方居中）
+        int screenWidth = 50;
+        int yPos = 4;
+
+        // 渲染文本
+        guiGraphics.drawString(
+                font,
+                text,
+                (screenWidth - font.width(text)) / 2,
+                yPos,
+                0xFFFFFF,
+                false
+        );
+        guiGraphics.drawString(
+                font,
+                text1,
+                (screenWidth + 84 - font.width(text1)) / 2,
+                yPos + 10,
+                0xFFFFFF,
+                false
+        );
 
     }
 }

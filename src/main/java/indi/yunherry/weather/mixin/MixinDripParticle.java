@@ -11,7 +11,11 @@ import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-
+/**
+ *
+ * 滴水石锥水滴落地
+ *
+ * */
 @Mixin(DripParticle.class)
 public abstract class MixinDripParticle extends TextureSheetParticle {
 
@@ -22,7 +26,6 @@ public abstract class MixinDripParticle extends TextureSheetParticle {
     @Override
     public void remove() {
         super.remove();
-        //奇怪的判定
         BlockPos pos = new BlockPos((int) this.x, (int) this.y, (int) this.z).west();
         BlockState state = level.getBlockState(pos);
         if (state.getBlock() == Blocks.WATER) {

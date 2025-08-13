@@ -28,7 +28,7 @@ import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toJOML;
 import static org.valkyrienskies.mod.common.util.VectorConversionsMCKt.toMinecraft;
 
 @Mixin(Particle.class)
-public abstract class MixinParticle {
+public abstract class MixinParticleByVS {
     @Shadow
     protected boolean removed;
 

@@ -1,20 +1,29 @@
 package indi.yunherry.weather.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
+import indi.yunherry.weather.GlobalContext;
 import indi.yunherry.weather.WorldContext;
+import indi.yunherry.weather.loader.BiomeFogColorLoader;
+import indi.yunherry.weather.loader.LoaderConfig;
+import indi.yunherry.weather.loader.LoaderManager;
 import indi.yunherry.weather.renderer.FogRenderer$Weather;
 import indi.yunherry.weather.renderer.ParticleRenderer;
-import indi.yunherry.weather.renderer.WeatherRenderer;
-import net.minecraft.Util;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.FogRenderer;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.QuartPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.CubicSampler;
 import net.minecraft.util.Mth;
@@ -22,21 +31,24 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.ForgeHooksClient;
-import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 
 import javax.annotation.Nullable;
 
-@Mixin(value = FogRenderer.class,priority = 1001)
+import static com.mojang.blaze3d.shaders.FogShape.CYLINDER;
+
+@Mixin(value = FogRenderer.class, priority = 1001)
 public abstract class MixinFogRenderer {
     @Shadow
     private static long biomeChangedTime;
@@ -51,19 +63,24 @@ public abstract class MixinFogRenderer {
     @Shadow
     private static float fogBlue;
 
+    // 存储当前的雾气模式，用于区分云渲染和地面雾气渲染
+    private static FogRenderer.FogMode currentFogMode = null;
+
+
     /**
-     * 这个方法同时渲染水下,天空盒,下雨时的情况
-     *
      * @author
      * @reason
      */
-    //p_234176_代表处于传送门或者药水效果
     @Overwrite
     public static void setupFog(Camera p_234173_, FogRenderer.FogMode p_234174_, float renderDistance, boolean p_234176_, float partialTick) {
+        // 存储当前雾气模式
+        currentFogMode = p_234174_;
+
         FogType fogtype = p_234173_.getFluidInCamera();
         Entity entity = p_234173_.getEntity();
         FogRenderer.FogData fogrenderer$fogdata = new FogRenderer.FogData(p_234174_);
         FogRenderer.MobEffectFogFunction fogrenderer$mobeffectfogfunction = getPriorityFogFunction(entity, partialTick);
+
         if (fogtype == FogType.LAVA) {
             if (entity.isSpectator()) {
                 fogrenderer$fogdata.start = -8.0F;
@@ -84,7 +101,6 @@ public abstract class MixinFogRenderer {
                 fogrenderer$fogdata.end = 2.0F;
             }
         } else if (fogrenderer$mobeffectfogfunction != null) {
-            //失明
             LivingEntity livingentity = (LivingEntity) entity;
             MobEffectInstance mobeffectinstance = livingentity.getEffect(fogrenderer$mobeffectfogfunction.getMobEffect());
             if (mobeffectinstance != null) {
@@ -104,38 +120,56 @@ public abstract class MixinFogRenderer {
 
             if (fogrenderer$fogdata.end > renderDistance) {
                 fogrenderer$fogdata.end = renderDistance;
-                fogrenderer$fogdata.shape = FogShape.CYLINDER;
+                fogrenderer$fogdata.shape = CYLINDER;
             }
         } else if (p_234176_) {
             fogrenderer$fogdata.start = renderDistance * 0.05F;
             fogrenderer$fogdata.end = Math.min(renderDistance, 192.0F) * 0.5F;
         } else if (p_234174_ == FogRenderer.FogMode.FOG_SKY) {
+            // 天空雾气模式 - 用于云渲染，保持原版逻辑
             fogrenderer$fogdata.start = 0.0F;
             fogrenderer$fogdata.end = renderDistance;
-            fogrenderer$fogdata.shape = FogShape.CYLINDER;
+            fogrenderer$fogdata.shape = CYLINDER;
         } else {
+            // 地面雾气模式 - 应用自定义雾气效果
             float f = Mth.clamp(renderDistance / 10.0F, 4.0F, 64.0F);
             fogrenderer$fogdata.start = renderDistance - f;
             fogrenderer$fogdata.end = renderDistance;
-            fogrenderer$fogdata.shape = FogShape.CYLINDER;
-        }
+            fogrenderer$fogdata.shape = CYLINDER;
 
-        ParticleRenderer renderer = WorldContext.beans.get("FogRenderer$Weather");
-        Minecraft mc = Minecraft.getInstance();
-        //TODO: 最后渲染距离应该是从远处慢慢变近这个值不会太低最小值肯定不为0
-        if (mc.level != null && p_234174_ != FogRenderer.FogMode.FOG_SKY) {
-            if (renderer instanceof FogRenderer$Weather fogRenderer && fogRenderer.isShouldRunning()) {
-                float f = Mth.clamp(renderDistance / 10.0F, 4.0F, 64.0F);
+            // 只在地面雾气模式下应用自定义天气雾气效果
+            ParticleRenderer renderer = WorldContext.beans.get("FogRenderer$Weather");
+            Minecraft mc = Minecraft.getInstance();
+
+            if (mc.level != null && renderer instanceof FogRenderer$Weather fogRenderer && fogRenderer.isShouldRunning()) {
+                Level level = GlobalContext.level;
+                float rain = level.getRainLevel(partialTick);
+                float playerY = (float) p_234173_.getPosition().y;
+                int skylight = level.getBrightness(LightLayer.SKY, p_234173_.getBlockPosition());
+
+                float fogRadius = 1f
+                        - rain * 0.1f
+                        + (rain > 0f && playerY < 47f ? rain * 0.1f : 0f)
+                        + (playerY < 47f ? 0.15f : 0f)
+                        - (playerY <= -54f && skylight == 0 ? 0.75f : 0f);
+
+                float factorA = 1f
+                        + (renderDistance / 64f) * 0.5f
+                        + rain * 0.4f
+                        - (rain > 0f && playerY < 47f ? rain * 0.4f : 0f)
+                        - (playerY < 47f ? 0.1f : 0f);
+
+                float factorB = 7.5f + (renderDistance / 64f * 2.5f);
+                float fogFade = factorA * factorB;
+
                 fogrenderer$fogdata.start = renderDistance - f - f * fogRenderer.getPartialTick() * 10;
-                fogrenderer$fogdata.end = renderDistance;
-//                System.out.println("起始位置: " + fogrenderer$fogdata.start);
-//                System.out.println("结束位置: " + fogrenderer$fogdata.start);
-//                fogrenderer$fogdata.shape = FogShape.CYLINDER;
-            }
+                fogrenderer$fogdata.end = renderDistance + f * fogRenderer.getPartialTick() * 2;
+                fogrenderer$fogdata.shape = FogShape.CYLINDER;
 
+//                System.out.println("地面雾气 - 起始位置: " + fogrenderer$fogdata.start + ", 结束位置: " + fogrenderer$fogdata.end);
+            }
         }
-//        System.out.println("起始位置: " + fogrenderer$fogdata.start);
-//        System.out.println("结束位置: " + fogrenderer$fogdata.end);
+
         RenderSystem.setShaderFogStart(fogrenderer$fogdata.start);
         RenderSystem.setShaderFogEnd(fogrenderer$fogdata.end);
         RenderSystem.setShaderFogShape(fogrenderer$fogdata.shape);
@@ -149,174 +183,61 @@ public abstract class MixinFogRenderer {
     }
 
     /**
-     * 渲染雾气颜色
-     * TODO: 下雨的时候天空颜色会出现骤变 这个方法渲染的是交界处,不是天空
-     *
-     * @author
-     * @reason
+     * 修改雾气颜色采样 - 只在地面雾气模式下应用自定义颜色
      */
-    @Overwrite
-    public static void setupColor(Camera p_109019_, float p_109020_, ClientLevel p_109021_, int p_109022_, float p_109023_) {
-        FogType fogtype = p_109019_.getFluidInCamera();
-        Entity entity = p_109019_.getEntity();
-        float f13;
-        float f15;
-        float f16;
-        float f5;
-        float f7;
-        float f9;
-        if (fogtype == FogType.WATER) {
-            long i = Util.getMillis();
-            int j = ((Biome) p_109021_.getBiome(BlockPos.containing(p_109019_.getPosition())).value()).getWaterFogColor();
-            if (biomeChangedTime < 0L) {
-                targetBiomeFog = j;
-                previousBiomeFog = j;
-                biomeChangedTime = i;
-            }
+    @WrapOperation(
+            method = "setupColor",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/util/CubicSampler;gaussianSampleVec3(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/util/CubicSampler$Vec3Fetcher;)Lnet/minecraft/world/phys/Vec3;"
+            )
+    )
+    private static Vec3 modifyFogColor$weather(Vec3 center, CubicSampler.Vec3Fetcher fetcher,
+                                               Operation<Vec3> original,
+                                               @Local(argsOnly = true) ClientLevel level,
+                                               @Local(argsOnly = true) int renderDistanceChunks,
+                                               @Local(ordinal = 6) float lightLevel) {
 
-            int k = targetBiomeFog >> 16 & 255;
-            int l = targetBiomeFog >> 8 & 255;
-            int i1 = targetBiomeFog & 255;
-            int j1 = previousBiomeFog >> 16 & 255;
-            int k1 = previousBiomeFog >> 8 & 255;
-            int l1 = previousBiomeFog & 255;
-            f13 = Mth.clamp((float) (i - biomeChangedTime) / 5000.0F, 0.0F, 1.0F);
-            f15 = Mth.lerp(f13, (float) j1, (float) k);
-            f16 = Mth.lerp(f13, (float) k1, (float) l);
-            float f3 = Mth.lerp(f13, (float) l1, (float) i1);
-            fogRed = f15 / 255.0F;
-            fogGreen = f16 / 255.0F;
-            fogBlue = f3 / 255.0F;
-            if (targetBiomeFog != j) {
-                targetBiomeFog = j;
-                previousBiomeFog = Mth.floor(f15) << 16 | Mth.floor(f16) << 8 | Mth.floor(f3);
-                biomeChangedTime = i;
-            }
-        } else if (fogtype == FogType.LAVA) {
-            fogRed = 0.6F;
-            fogGreen = 0.1F;
-            fogBlue = 0.0F;
-            biomeChangedTime = -1L;
-        } else if (fogtype == FogType.POWDER_SNOW) {
-            fogRed = 0.623F;
-            fogGreen = 0.734F;
-            fogBlue = 0.785F;
-            biomeChangedTime = -1L;
-            RenderSystem.clearColor(fogRed, fogGreen, fogBlue, 0.0F);
-        } else {
-            f5 = 0.25F + 0.75F * (float) p_109022_ / 32.0F;
-            f5 = 1.0F - (float) Math.pow((double) f5, 0.25);
-            Vec3 vec3 = p_109021_.getSkyColor(p_109019_.getPosition(), p_109020_);
-            f7 = (float) vec3.x;
-            f9 = (float) vec3.y;
-            float f10 = (float) vec3.z;
-            float f11 = Mth.clamp(Mth.cos(p_109021_.getTimeOfDay(p_109020_) * 6.2831855F) * 2.0F + 0.5F, 0.0F, 1.0F);
-            BiomeManager biomemanager = p_109021_.getBiomeManager();
-            Vec3 vec31 = p_109019_.getPosition().subtract(2.0, 2.0, 2.0).scale(0.25);
-            Vec3 vec32 = CubicSampler.gaussianSampleVec3(vec31, (p_109033_, p_109034_, p_109035_) -> {
-                return p_109021_.effects().getBrightnessDependentFogColor(Vec3.fromRGB24(((Biome) biomemanager.getNoiseBiomeAtQuart(p_109033_, p_109034_, p_109035_).value()).getFogColor()), f11);
-            });
-            fogRed = (float) vec32.x();
-            fogGreen = (float) vec32.y();
-            fogBlue = (float) vec32.z();
-            if (p_109022_ >= 4) {
-                f13 = Mth.sin(p_109021_.getSunAngle(p_109020_)) > 0.0F ? -1.0F : 1.0F;
-                Vector3f vector3f = new Vector3f(f13, 0.0F, 0.0F);
-                f16 = p_109019_.getLookVector().dot(vector3f);
-                if (f16 < 0.0F) {
-                    f16 = 0.0F;
-                }
-
-                if (f16 > 0.0F) {
-                    float[] afloat = p_109021_.effects().getSunriseColor(p_109021_.getTimeOfDay(p_109020_), p_109020_);
-                    if (afloat != null) {
-                        f16 *= afloat[3];
-                        fogRed = fogRed * (1.0F - f16) + afloat[0] * f16;
-                        fogGreen = fogGreen * (1.0F - f16) + afloat[1] * f16;
-                        fogBlue = fogBlue * (1.0F - f16) + afloat[2] * f16;
-                    }
-                }
-            }
-
-            fogRed += (f7 - fogRed) * f5;
-            fogGreen += (f9 - fogGreen) * f5;
-            fogBlue += (f10 - fogBlue) * f5;
-            f13 = p_109021_.getRainLevel(p_109020_);
-            if (f13 > 0.0F) {
-                f15 = 1.0F - f13 * 0.5F;
-                f16 = 1.0F - f13 * 0.4F;
-                fogRed *= f15;
-                fogGreen *= f15;
-                fogBlue *= f16;
-            }
-
-            f15 = p_109021_.getThunderLevel(p_109020_);
-            if (f15 > 0.0F) {
-                f16 = 1.0F - f15 * 0.5F;
-                fogRed *= f16;
-                fogGreen *= f16;
-                fogBlue *= f16;
-            }
-
-            biomeChangedTime = -1L;
+        if (currentFogMode == FogRenderer.FogMode.FOG_SKY) {
+            return original.call(center, fetcher);
         }
 
-        f5 = ((float) p_109019_.getPosition().y - (float) p_109021_.getMinBuildHeight()) * p_109021_.getLevelData().getClearColorScale();
-        FogRenderer.MobEffectFogFunction fogrenderer$mobeffectfogfunction = getPriorityFogFunction(entity, p_109020_);
-        if (fogrenderer$mobeffectfogfunction != null) {
-            LivingEntity livingentity = (LivingEntity) entity;
-            f5 = fogrenderer$mobeffectfogfunction.getModifiedVoidDarkness(livingentity, livingentity.getEffect(fogrenderer$mobeffectfogfunction.getMobEffect()), f5, p_109020_);
-        }
+        Vec3 camPos = GlobalContext.camPos.getCenter();
+        Vec3 modified = level.effects().getBrightnessDependentFogColor(CubicSampler.gaussianSampleVec3(camPos, (x, y, z) -> {
+            BlockPos sample = BlockPos.containing(x, y, z);
 
-        if (f5 < 1.0F && fogtype != FogType.LAVA && fogtype != FogType.POWDER_SNOW) {
-            if (f5 < 0.0F) {
-                f5 = 0.0F;
+            LoaderConfig loaderConfig = LoaderConfig.builder().rain(level.getRainLevel(0)).skyLight((int) lightLevel).build();
+            ResourceLocation biomeRL = getAccurateBiomeID(level, sample);
+
+            BiomeFogColorLoader loader = LoaderManager.getLoader(BiomeFogColorLoader.BIOME_FOG_COLOR_LOADER, BiomeFogColorLoader.class);
+            if (loader != null) {
+                Vector4f rgba = loader.findColorByKey(biomeRL.toString(),loaderConfig);
+                return new Vec3(rgba.x, rgba.y, rgba.z);
             }
+            return new Vec3(0.141f, 0.141f, 0.141f); // 默认 #242424
+        }), lightLevel);
 
-            f5 *= f5;
-            fogRed *= f5;
-            fogGreen *= f5;
-            fogBlue *= f5;
+        if (modified != null) {
+//            System.out.println("应用自定义地面雾气颜色: " + modified);
+            return modified;
         }
-
-        if (p_109023_ > 0.0F) {
-            fogRed = fogRed * (1.0F - p_109023_) + fogRed * 0.7F * p_109023_;
-            fogGreen = fogGreen * (1.0F - p_109023_) + fogGreen * 0.6F * p_109023_;
-            fogBlue = fogBlue * (1.0F - p_109023_) + fogBlue * 0.6F * p_109023_;
-        }
-
-        if (fogtype == FogType.WATER) {
-            if (entity instanceof LocalPlayer) {
-                f7 = ((LocalPlayer) entity).getWaterVision();
-            } else {
-                f7 = 1.0F;
-            }
-        } else {
-            label86:
-            {
-                if (entity instanceof LivingEntity) {
-                    LivingEntity livingentity1 = (LivingEntity) entity;
-                    if (livingentity1.hasEffect(MobEffects.NIGHT_VISION) && !livingentity1.hasEffect(MobEffects.DARKNESS)) {
-                        f7 = GameRenderer.getNightVisionScale(livingentity1, p_109020_);
-                        break label86;
-                    }
-                }
-
-                f7 = 0.0F;
-            }
-        }
-
-        if (fogRed != 0.0F && fogGreen != 0.0F && fogBlue != 0.0F) {
-            f9 = Math.min(1.0F / fogRed, Math.min(1.0F / fogGreen, 1.0F / fogBlue));
-            fogRed = fogRed * (1.0F - f7) + fogRed * f9 * f7;
-            fogGreen = fogGreen * (1.0F - f7) + fogGreen * f9 * f7;
-            fogBlue = fogBlue * (1.0F - f7) + fogBlue * f9 * f7;
-        }
-
-        Vector3f fogColor = ForgeHooksClient.getFogColor(p_109019_, p_109020_, p_109021_, p_109022_, p_109023_, fogRed, fogGreen, fogBlue);
-        fogRed = fogColor.x();
-        fogGreen = fogColor.y();
-        fogBlue = fogColor.z();
-        RenderSystem.clearColor(fogRed, fogGreen, fogBlue, 0.0F);
+        return original.call(center, fetcher);
     }
+
+    // 辅助方法 - 需要添加到类中
+    private static ResourceLocation getAccurateBiomeID(Level level, BlockPos pos) {
+        int quartX = QuartPos.fromBlock(pos.getX());
+        int quartY = QuartPos.fromBlock(pos.getY());
+        int quartZ = QuartPos.fromBlock(pos.getZ());
+
+        LevelChunk chunk = level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
+        Holder<Biome> holder = chunk.getNoiseBiome(quartX, quartY, quartZ);
+
+        Registry<Biome> biomeRegistry = level.registryAccess().registryOrThrow(Registries.BIOME);
+        return biomeRegistry.getResourceKey(holder.value())
+                .map(ResourceKey::location)
+                .orElse(new ResourceLocation("minecraft", "plains"));
+    }
+
+
 }

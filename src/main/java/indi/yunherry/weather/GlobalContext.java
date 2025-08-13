@@ -15,6 +15,6 @@ public abstract class GlobalContext {
         ParticleRenderer.mc = mc;
         camPos = mc.gameRenderer.getMainCamera().getBlockPosition();
         level = mc.level;
-        AnimationController.update(level);
+//        AnimationController.tick(level);
     }
 }

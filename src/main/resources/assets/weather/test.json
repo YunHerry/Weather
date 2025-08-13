@@ -1,0 +1,17 @@
+{
+	"default_color": "#242424",
+	"loader": "biome_colorLoader",
+	"step": 256,
+	"data": {
+		"minecraft:birch_forest": {
+			"startColor": "#1e1f22",
+			"midColor": "#e29649",
+			"endColor": "#1e1f22"
+		},
+		"minecraft:sunflower_plains": {
+			"startColor": "#1e1f22",
+			"midColor": "#e29649",
+			"endColor": "#1e1f22"
+		}
+	}
+}

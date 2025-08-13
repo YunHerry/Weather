@@ -56,6 +56,7 @@ public class WindParticle extends TextureSheetParticle {
         this.setPos(x, y, z);
         this.setSpriteFromAge(p_107724_);
         this.setAlpha(0.5F);
+//        this.setColor(255,255,255);
         this.rotationY = switch (WorldContext.windDirection) {
             case NORTH -> 0;
             case WEST -> 270;
@@ -73,7 +74,7 @@ public class WindParticle extends TextureSheetParticle {
     public void tick() {
         super.tick();
         this.setSpriteFromAge(this.sprites);
-
+//        this.alpha = 0.5f + 0.5f * ((float) this.age / this.lifetime);
         if (this.alpha == 0) remove();
     }
 
