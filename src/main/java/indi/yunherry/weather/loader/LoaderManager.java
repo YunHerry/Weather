@@ -21,6 +21,9 @@ public class LoaderManager {
     private static void register() {
         loaders.add(BiomeFogColorLoader.register());
         loaders.add(BiomeSkyColorLoader.register());
+        loaders.add(BiomeWaterColorLoader.register());
+//        loaders.add(BiomeLavaColorLoader.register());
+        loaders.add(BiomeWaterFogColorLoader.register());
     }
 
     /**

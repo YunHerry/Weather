@@ -15,16 +15,109 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.joml.Vector4f;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
+import static indi.yunherry.weather.utils.ColorUtils.parseColor;
+
 public class ColorMapUtils {
-    public static Vector4f getColorFromMap(int[] colorMap, float y) {
+    /**
+     * 根据起始颜色、中间颜色、结束颜色和步数生成颜色映射
+     *
+     * @param startColor 起始颜色 (hex格式，如 "#1e1f22")
+     * @param midColor   中间颜色 (hex格式，如 "#e29649")
+     * @param endColor   结束颜色 (hex格式，如 "#1e1f22")
+     * @param step       颜色步数
+     * @return 颜色映射数组，包含step个颜色值
+     */
+    public static int[] generateColorMap(String startColor, String midColor, String endColor, int step) {
+        if (step <= 0) {
+            throw new IllegalArgumentException("Step must be greater than 0");
+        }
+
+        if (step == 1) {
+            return new int[]{parseColor(midColor)};
+        }
+
+        // 解析颜色
+        int startRgb = parseColor(startColor);
+        int midRgb = parseColor(midColor);
+        int endRgb = parseColor(endColor);
+
+        // 提取RGB分量
+        Color startColorObj = new Color(startRgb);
+        Color midColorObj = new Color(midRgb);
+        Color endColorObj = new Color(endRgb);
+
+        int[] colorMap = new int[step];
+
+        // 如果只有2步，直接返回起始和结束颜色
+        if (step == 2) {
+            colorMap[0] = startRgb;
+            colorMap[1] = endRgb;
+            return colorMap;
+        }
+
+        // 计算中点位置
+        int midPoint = step / 2;
+
+        // 生成从起始到中间的颜色渐变
+        for (int i = 0; i <= midPoint; i++) {
+            float ratio = (float) i / midPoint;
+            colorMap[i] = interpolateColor(startColorObj, midColorObj, ratio);
+        }
+
+        // 生成从中间到结束的颜色渐变
+        for (int i = midPoint + 1; i < step; i++) {
+            float ratio = (float) (i - midPoint) / (step - 1 - midPoint);
+            colorMap[i] = interpolateColor(midColorObj, endColorObj, ratio);
+        }
+
+        return colorMap;
+    }
+
+    /**
+     * 在两个颜色之间进行线性插值
+     */
+    private static int interpolateColor(Color color1, Color color2, float ratio) {
+        // 确保比例在0-1之间
+        ratio = Math.max(0, Math.min(1, ratio));
+
+        int red = (int) (color1.getRed() + ratio * (color2.getRed() - color1.getRed()));
+        int green = (int) (color1.getGreen() + ratio * (color2.getGreen() - color1.getGreen()));
+        int blue = (int) (color1.getBlue() + ratio * (color2.getBlue() - color1.getBlue()));
+
+        return new Color(red, green, blue).getRGB();
+    }
+
+    /**
+     * 从 ColorConfigData.BiomeColorData 生成颜色映射
+     */
+    public static int[] generateColorMap(BiomeColorConfigData.BiomeColorData biomeColorData, int step) {
+        return generateColorMap(biomeColorData.startColor(), biomeColorData.midColor(), biomeColorData.endColor(), step);
+    }
+
+    /**
+     * 从 ColorConfigData 生成特定生物群系的颜色映射
+     */
+    public static int[] generateColorMapForBiome(BiomeColorConfigData config, String biomeId) {
+        BiomeColorConfigData.BiomeColorData biomeData = config.data().get(biomeId);
+        if (biomeData == null) {
+            throw new IllegalArgumentException("Biome not found: " + biomeId);
+        }
+
+        return generateColorMap(biomeData, config.step());
+    }
+
+    public static Vector4f getColorFromMap(int[] colorMap, float y,int defaultColor) {
         if (colorMap == null || colorMap.length == 0) {
             return new Vector4f(0.141f, 0.141f, 0.141f, 1.0f); // 默认颜色
         }
@@ -53,9 +146,17 @@ public class ColorMapUtils {
 
         return new Vector4f(r, g, b, a);
     }
+    public static Vector4f int2Vector4fColor(int color) {
+        float a = ((color >> 24) & 0xFF) / 255.0f;
+        float r = ((color >> 16) & 0xFF) / 255.0f;
+        float g = ((color >> 8) & 0xFF) / 255.0f;
+        float b = (color & 0xFF) / 255.0f;
 
+        return new Vector4f(r, g, b, a);
+    }
     /**
      * 生成调试图片 - 将每个生物群系的颜色映射输出为图片文件
+     *
      * @param colorMaps 颜色映射数据
      * @param namespace 命名空间，用于组织目录结构
      */
@@ -79,7 +180,7 @@ public class ColorMapUtils {
                 }
             });
 
-            System.out.println("Debug images generated successfully in: " + debugDir.toString());
+            System.out.println("Debug images generated successfully in: " + debugDir);
 
         } catch (Exception e) {
             System.err.println("Failed to generate debug images: " + e.getMessage());
@@ -88,14 +189,8 @@ public class ColorMapUtils {
     }
 
     /**
-     * 生成调试图片 - 重载方法，使用默认namespace
-     */
-    public void generateDebugImages(Map<String, int[]> colorMaps) {
-        generateDebugImages(colorMaps, "default");
-    }
-
-    /**
      * 创建调试目录，支持namespace子目录
+     *
      * @param namespace 命名空间
      * @return 创建的目录路径
      */
@@ -113,13 +208,6 @@ public class ColorMapUtils {
         Files.createDirectories(debugPath);
 
         return debugPath;
-    }
-
-    /**
-     * 创建调试目录 - 重载方法，使用默认namespace
-     */
-    private Path createDebugDirectory() throws IOException {
-        return createDebugDirectory("default");
     }
 
     /**
@@ -177,20 +265,12 @@ public class ColorMapUtils {
      */
     private static String sanitizeFileName(String fileName) {
         // 替换命名空间分隔符和其他特殊字符
-        return fileName.replace(":", "_")
-                .replace("/", "_")
-                .replace("\\", "_")
-                .replace("<", "_")
-                .replace(">", "_")
-                .replace("|", "_")
-                .replace("?", "_")
-                .replace("*", "_")
-                .replace("\"", "_")
-                .replace(" ", "_");
+        return fileName.replace(":", "_").replace("/", "_").replace("\\", "_").replace("<", "_").replace(">", "_").replace("|", "_").replace("?", "_").replace("*", "_").replace("\"", "_").replace(" ", "_");
     }
 
     /**
      * 生成水平颜色条图片（可选的替代格式）
+     *
      * @param colorMaps 颜色映射数据
      * @param namespace 命名空间
      */
@@ -219,13 +299,6 @@ public class ColorMapUtils {
         } catch (Exception e) {
             System.err.println("Failed to generate horizontal color bars: " + e.getMessage());
         }
-    }
-
-    /**
-     * 生成水平颜色条图片 - 重载方法，使用默认namespace
-     */
-    public void generateHorizontalColorBars(Map<String, int[]> colorMaps) {
-        generateHorizontalColorBars(colorMaps, "default");
     }
 
     /**
@@ -266,7 +339,8 @@ public class ColorMapUtils {
 
     /**
      * 手动触发调试图片生成（用于测试）
-     * @param config 配置数据
+     *
+     * @param config    配置数据
      * @param colorMaps 颜色映射
      * @param namespace 命名空间
      */
@@ -281,14 +355,8 @@ public class ColorMapUtils {
     }
 
     /**
-     * 手动触发调试图片生成 - 重载方法，使用默认namespace
-     */
-    public void debugGenerateImages(BiomeColorConfigData config, Map<String, int[]> colorMaps) {
-        debugGenerateImages(config, colorMaps, "default");
-    }
-
-    /**
      * 批量生成多个namespace的调试图片
+     *
      * @param namespacedColorMaps 按namespace组织的颜色映射数据
      */
     public void generateDebugImagesForNamespaces(Map<String, Map<String, int[]>> namespacedColorMaps) {
@@ -314,6 +382,7 @@ public class ColorMapUtils {
 
     /**
      * 清理指定namespace的调试目录
+     *
      * @param namespace 要清理的命名空间
      */
     public void cleanDebugDirectory(String namespace) {
@@ -324,10 +393,7 @@ public class ColorMapUtils {
 
             if (Files.exists(debugPath)) {
                 // 递归删除目录及其内容
-                Files.walk(debugPath)
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
+                Files.walk(debugPath).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 
                 System.out.println("Cleaned debug directory for namespace: " + namespace);
             }
@@ -338,6 +404,7 @@ public class ColorMapUtils {
 
     /**
      * 获取指定namespace的调试目录路径（不创建目录）
+     *
      * @param namespace 命名空间
      * @return 调试目录路径
      */
@@ -346,6 +413,7 @@ public class ColorMapUtils {
         String cleanNamespace = sanitizeFileName(namespace);
         return Paths.get(gameDir.getAbsolutePath(), "weather", "debug", cleanNamespace);
     }
+
     public static ResourceLocation getAccurateBiomeID(Level level, BlockPos pos) {
         int quartX = QuartPos.fromBlock(pos.getX());
         int quartY = QuartPos.fromBlock(pos.getY());
@@ -355,8 +423,6 @@ public class ColorMapUtils {
         Holder<Biome> holder = chunk.getNoiseBiome(quartX, quartY, quartZ);
 
         Registry<Biome> biomeRegistry = level.registryAccess().registryOrThrow(Registries.BIOME);
-        return biomeRegistry.getResourceKey(holder.value())
-                .map(ResourceKey::location)
-                .orElse(new ResourceLocation("minecraft", "plains"));
+        return biomeRegistry.getResourceKey(holder.value()).map(ResourceKey::location).orElse(new ResourceLocation("minecraft", "plains"));
     }
 }

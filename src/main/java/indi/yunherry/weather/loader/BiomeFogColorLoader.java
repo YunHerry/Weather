@@ -1,8 +1,8 @@
 package indi.yunherry.weather.loader;
 
 import com.google.gson.JsonObject;
-import indi.yunherry.weather.utils.ColorMapGenerator;
 import indi.yunherry.weather.utils.ColorMapUtils;
+import indi.yunherry.weather.utils.ColorUtils;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4f;
 
@@ -44,7 +44,7 @@ public class BiomeFogColorLoader extends AbstractLoader<BiomeColorConfigData.Bio
             if (config != null) {
                 // 为每个生物群系生成颜色映射
                 config.data().forEach((biomeId, biomeColorData) -> {
-                    int[] colorMap = ColorMapGenerator.generateColorMap(biomeColorData, config.step());
+                    int[] colorMap = ColorMapUtils.generateColorMap(biomeColorData, config.step());
                     colorMaps.put(biomeId, colorMap);
                     System.out.println("Generated color map for biome: " + biomeId);
                 });
@@ -73,6 +73,6 @@ public class BiomeFogColorLoader extends AbstractLoader<BiomeColorConfigData.Bio
 
     @Override
     public Vector4f findColorByKey(String key, LoaderConfig loaderConfig) {
-        return ColorMapUtils.getColorFromMap(getColorMapByString(key),getYAxis(loaderConfig));
+        return ColorMapUtils.getColorFromMap(getColorMapByString(key),getYAxis(loaderConfig), ColorUtils.parseColor(config.defaultColor()));
     }
 }

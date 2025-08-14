@@ -15,16 +15,6 @@ public record BiomeColorConfigData(
         @SerializedName("data") Map<String, BiomeColorData> data
 ) {
 
-    // 便捷方法：获取特定生物群系的颜色数据
-    public BiomeColorData getBiomeColorData(String biomeId) {
-        return data != null ? data.get(biomeId) : new BiomeColorData(defaultColor,defaultColor,defaultColor);
-    }
-
-    // 便捷方法：检查是否包含特定生物群系
-    public boolean hasBiome(String biomeId) {
-        return data != null && data.containsKey(biomeId);
-    }
-
     /**
      * 内部记录类：生物群系颜色数据
      * 包含起始颜色、中间颜色和结束颜色

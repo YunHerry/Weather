@@ -3,50 +3,50 @@ package indi.yunherry.weather.loader;
 import com.google.gson.JsonObject;
 import indi.yunherry.weather.utils.ColorMapUtils;
 import indi.yunherry.weather.utils.ColorUtils;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4f;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class BiomeSkyColorLoader extends AbstractLoader<BiomeColorConfigData.BiomeColorData>{
-    public static final String BIOME_SKY_COLOR_LOADER = "BiomeSkyColorLoader";
-    private BiomeColorConfigData config;
+public class BiomeWaterColorLoader extends  AbstractLoader<SimpleBiomeColorConfigData.BiomeColorData> {
+    public static final String BIOME_WATER_COLOR_LOADER = "BiomeWaterColorLoader";
+    private SimpleBiomeColorConfigData config;
 
-    public int[] getColorMapByString(String biomeId) {
-        return colorMaps.get(biomeId);
+    public Integer getColorMapByString(String biomeId) {
+        return colorMaps.getOrDefault(biomeId,ColorUtils.parseColor(config.defaultColor()));
     }
 
-    private final Map<String, int[]> colorMaps = new HashMap<>();
-    private BiomeSkyColorLoader() {
+    private final Map<String, Integer> colorMaps = new HashMap<>();
+    private BiomeWaterColorLoader() {
     }
 
     @Override
     public String getLoaderName() {
-        return BIOME_SKY_COLOR_LOADER;
+        return BIOME_WATER_COLOR_LOADER;
     }
 
     @Override
     public String getNamespace() {
-        return "biome_sky_color";
+        return "biome_water_color";
     }
 
     protected static AbstractLoader<?> register() {
-        return new BiomeSkyColorLoader();
+        return new BiomeWaterColorLoader();
     }
 
     @Override
     public void process(JsonObject jsonObject) {
         try {
-            config = gson.fromJson(jsonObject, BiomeColorConfigData.class);
+            config = gson.fromJson(jsonObject, SimpleBiomeColorConfigData.class);
             if (config != null) {
                 // 为每个生物群系生成颜色映射
                 config.data().forEach((biomeId, biomeColorData) -> {
-                    int[] colorMap = ColorMapUtils.generateColorMap(biomeColorData, config.step());
-                    colorMaps.put(biomeId, colorMap);
+                    int color = ColorUtils.parseColor(biomeColorData.color());
+                    colorMaps.put(biomeId, color);
                     System.out.println("Generated color map for biome: " + biomeId);
                 });
                 System.out.println("命名空间: " + getNamespace());
-                ColorMapUtils.generateDebugImages(colorMaps,getNamespace());
             }
 
         } catch (Exception e) {
@@ -57,11 +57,11 @@ public class BiomeSkyColorLoader extends AbstractLoader<BiomeColorConfigData.Bio
 
     @Override
     public float getYAxis(LoaderConfig loaderConfig) {
-        return (float) loaderConfig.rain();
+        return 0f;
     }
 
     @Override
     public Vector4f findColorByKey(String key, LoaderConfig loaderConfig) {
-        return ColorMapUtils.getColorFromMap(getColorMapByString(key),getYAxis(loaderConfig), ColorUtils.parseColor(config.defaultColor()));
+        return ColorMapUtils.int2Vector4fColor(colorMaps.getOrDefault(key, ColorUtils.parseColor(config.defaultColor())));
     }
 }

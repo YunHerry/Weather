@@ -8,6 +8,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import indi.yunherry.weather.GlobalContext;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.loader.BiomeFogColorLoader;
+import indi.yunherry.weather.loader.BiomeWaterFogColorLoader;
 import indi.yunherry.weather.loader.LoaderConfig;
 import indi.yunherry.weather.loader.LoaderManager;
 import indi.yunherry.weather.renderer.FogRenderer$Weather;
@@ -195,33 +196,30 @@ public abstract class MixinFogRenderer {
     )
     private static Vec3 modifyFogColor$weather(Vec3 center, CubicSampler.Vec3Fetcher fetcher,
                                                Operation<Vec3> original,
+                                               @Local(argsOnly = true) Camera camera,
                                                @Local(argsOnly = true) ClientLevel level,
                                                @Local(argsOnly = true) int renderDistanceChunks,
                                                @Local(ordinal = 6) float lightLevel) {
-
         if (currentFogMode == FogRenderer.FogMode.FOG_SKY) {
             return original.call(center, fetcher);
         }
-
         Vec3 camPos = GlobalContext.camPos.getCenter();
+        FogType fogtype = camera.getFluidInCamera();
         Vec3 modified = level.effects().getBrightnessDependentFogColor(CubicSampler.gaussianSampleVec3(camPos, (x, y, z) -> {
             BlockPos sample = BlockPos.containing(x, y, z);
+            Vector4f rgba;
 
-            LoaderConfig loaderConfig = LoaderConfig.builder().rain(level.getRainLevel(0)).skyLight((int) lightLevel).build();
             ResourceLocation biomeRL = ColorMapUtils.getAccurateBiomeID(level, sample);
-
-            BiomeFogColorLoader loader = LoaderManager.getLoader(BiomeFogColorLoader.BIOME_FOG_COLOR_LOADER, BiomeFogColorLoader.class);
-            if (loader != null) {
-                Vector4f rgba = loader.findColorByKey(biomeRL.toString(),loaderConfig);
-                return new Vec3(rgba.x, rgba.y, rgba.z);
+            if (fogtype == FogType.WATER) {
+                BiomeWaterFogColorLoader loader = LoaderManager.getLoader(BiomeWaterFogColorLoader.BIOME_WATER_FOG_COLOR_LOADER, BiomeWaterFogColorLoader.class);
+                rgba = ColorMapUtils.int2Vector4fColor(loader.getColorMapByString(biomeRL.toString()));
+            } else {
+                LoaderConfig loaderConfig = LoaderConfig.builder().rain(level.getRainLevel(0)).skyLight((int) lightLevel).build();
+                BiomeFogColorLoader loader = LoaderManager.getLoader(BiomeFogColorLoader.BIOME_FOG_COLOR_LOADER, BiomeFogColorLoader.class);
+                rgba = loader.findColorByKey(biomeRL.toString(), loaderConfig);
             }
-            return new Vec3(0.141f, 0.141f, 0.141f); // 默认 #242424
+            return new Vec3(rgba.x, rgba.y, rgba.z);
         }), lightLevel);
-
-        if (modified != null) {
-//            System.out.println("应用自定义地面雾气颜色: " + modified);
-            return modified;
-        }
-        return original.call(center, fetcher);
+        return modified;
     }
 }

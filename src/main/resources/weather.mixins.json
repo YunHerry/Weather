@@ -15,6 +15,7 @@
   ],
   "client": [
     "MixinBaseAshSmokeParticle",
+    "MixinBiomeColors",
     "MixinClientLevelBySkyColor",
     "MixinDripParticle",
     "MixinFogRenderer",

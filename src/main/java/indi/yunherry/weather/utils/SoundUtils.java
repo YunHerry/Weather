@@ -8,9 +8,6 @@ import net.minecraft.world.phys.Vec3;
 
 public class SoundUtils {
     /**
-     * 在玩家指定方位播放风声(仅客户端)
-     */
-    /**
      * 在玩家指定方位播放风声(使用WindDirectionType)
      */
     public static void playWindInDirection(WindDirectionType windDirection, double distance, float volume, float pitch) {
