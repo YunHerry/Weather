@@ -1,5 +1,5 @@
-package fun.qu_an.minecraft.asyncparticles.client.compat.create;
+package indi.yunherry.weather.compact.create;
 
 public interface ContraptionEntityAddon {
-	boolean asyncparticles$doParticleCollision();
+	boolean weather$doParticleCollision();
 }

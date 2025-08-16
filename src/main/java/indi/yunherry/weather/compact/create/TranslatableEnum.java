@@ -1,4 +1,4 @@
-package fun.qu_an.minecraft.asyncparticles.client.util;
+package indi.yunherry.weather.compact.create;
 
 import net.minecraft.network.chat.Component;
 

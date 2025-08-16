@@ -1,4 +1,4 @@
-package indi.yunherry.weather.mixin;
+package indi.yunherry.weather.mixin.create;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -32,13 +32,8 @@ public class MixinParticle {
 	@Shadow
 	public double z;
 
-	/**
-	 * See {@link fun.qu_an.minecraft.asyncparticles.client.mixin.vs2.MixinParticle#collideBoundingBox}
-	 * See {@link fun.qu_an.minecraft.asyncparticles.client.mixin.forge.weather2_vs.MixinEntityRotFX#collideBoundingBox}
-	 */
 	@WrapOperation(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;collideBoundingBox(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Lnet/minecraft/world/level/Level;Ljava/util/List;)Lnet/minecraft/world/phys/Vec3;"))
 	private Vec3 collideBoundingBox(Entity entity, Vec3 motion, AABB aABB, Level level, List<VoxelShape> list, Operation<Vec3> original) {
-		// we do it in another thread, so we don't need to worry about costly collision checks
 		Vec3 mov = CreateUtils.collideMotionWithContraptions((ClientLevel) level, motion, aABB);
 		return original.call(entity, mov == null ? motion : mov, aABB, level, list);
 	}

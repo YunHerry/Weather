@@ -11,7 +11,10 @@
     "MixinCommands",
     "MixinLevelRendererByWeather",
     "MixinMagmaBlock",
-    "MixinSeagrass"
+    "MixinSeagrass",
+    "create.MixinAbstractContraptionEntity",
+    "create.MixinAbstractContraptionEntity_NoParticleCollision",
+    "create.MixinContraption"
   ],
   "client": [
     "MixinBaseAshSmokeParticle",
@@ -22,7 +25,9 @@
     "MixinGameRendererByGlobalContext",
     "MixinLevelRendererByClouds",
     "MixinParticleByVS",
-    "MixinWaterDropParticle"
+    "MixinWaterDropParticle",
+    ,
+    "create.MixinParticle"
   ],
   "injectors": {
     "defaultRequire": 1

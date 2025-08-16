@@ -58,7 +58,7 @@ public class RainRenderer extends WeatherRenderer {
         //斜角会导致aabb区域需要扩大,因为当出现斜角后aabb不是中心了
         //TODO: 实现斜角雨/暴风雪
 
-        float xRot = (22.5f) * ((float) Math.PI / 180.0F);
+        float xRot = (0) * ((float) Math.PI / 180.0F);
         float zRot = (0) * ((float) Math.PI / 180.0F);
 //        switch (WorldContext.windDirection) {
 //            case NORTH -> {
@@ -106,7 +106,7 @@ public class RainRenderer extends WeatherRenderer {
         //生成粒子
         if (isRainPrecipitation && level.isRaining()) {
 //            float rainIntensity = this.mc.level.getRainLevel(0);
-            float rainIntensity = 0.3f;
+            float rainIntensity = 0.8f;
             //TODO isThundering?
 //            int lifeSpanBase = level.isThundering() ? 20 : 10;
             int lifeSpanBase = 20;
@@ -126,7 +126,7 @@ public class RainRenderer extends WeatherRenderer {
                                 if (blockRandom.nextInt(100) <= 1) {
                                     float widthModifier = 2.0F;
 
-                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F,zRot + random.nextFloat() * 0.1F, lifeSpanBase + random.nextInt(lifeSpanBase), rainIntensity * widthModifier, camPos.getY());
+                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F,zRot + random.nextFloat() * 0.1F, lifeSpanBase + random.nextInt(lifeSpanBase), rainIntensity * widthModifier, level);
                                     this.precipitationQuads.put(pos, quad);
                                     this.quadsByPrecipitation.computeIfAbsent(precipitation, p -> Lists.newArrayList()).add(quad);
                                 }
@@ -158,6 +158,7 @@ public class RainRenderer extends WeatherRenderer {
                 BlockHitResult hitResult = quad.getHitResult();
                 //when join the world
                 if (Objects.nonNull(hitResult) && hitResult.getType() != HitResult.Type.MISS) {
+
                     //是击中的方块中心
                     BlockPos downPos = hitResult.getBlockPos();
                     BlockState blockstate = levelreader.getBlockState(downPos);

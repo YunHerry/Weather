@@ -1,11 +1,15 @@
 package indi.yunherry.weather;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 public class RayThreadPool {
-    private static final ExecutorService pool = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() - 1));
+    private static final ExecutorService pool = new ThreadPoolExecutor(
+            Math.max(2, Runtime.getRuntime().availableProcessors() - 1),
+            Math.max(2, Runtime.getRuntime().availableProcessors() - 1),
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(20),
+            new ThreadPoolExecutor.DiscardOldestPolicy()
+    );
 
     public static void init() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

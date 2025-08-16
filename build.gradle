@@ -120,6 +120,15 @@ repositories {
         allowInsecureProtocol = true
     }
     maven { url "https://maven.shedaniel.me/" }
+
+    maven {
+        name = 'tterrag maven'
+        url = 'https://maven.tterrag.com/'
+    }
+    maven {
+        name "ModMaven"
+        url "https://modmaven.dev"
+    }
     mavenCentral()
 }
 dependencies {
@@ -141,21 +150,15 @@ dependencies {
     implementation("org.joml:joml-primitives:1.10.0") { transitive = false }
     implementation fg.deobf("org.valkyrienskies:valkyrienskies-120-forge:${vs2_version}") { transitive = false }
     implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:11.1.136")
-    compileOnly ("org.valkyrienskies.core:api:${vs_core_version}")
-    compileOnly ("org.valkyrienskies.core:api-game:${vs_core_version}")
-    compileOnly ("org.valkyrienskies.core:util:${vs_core_version}")
-    compileOnly ("org.valkyrienskies.core:impl:${vs_core_version}")
+    compileOnly("org.valkyrienskies.core:api:${vs_core_version}")
+    compileOnly("org.valkyrienskies.core:api-game:${vs_core_version}")
+    compileOnly("org.valkyrienskies.core:util:${vs_core_version}")
+    compileOnly("org.valkyrienskies.core:impl:${vs_core_version}")
 
-//    compileOnly fg.deobf("maven.modrinth:valkyrien-skies:1.20.1-forge-2.3.0-beta.5")
-//    runtimeOnly  fg.deobf("org.valkyrienskies:valkyrienskies-${rootProject.vs2_mc_version}-forge:${rootProject.vs2_version}")
-//    implementation fg.deobf("curse.maven:eureka-654384:5321630")
-
-//    runtimeOnly "curse.maven:kotlin-351264:5978393"
-//    runtimeOnly fg.deobf("maven.modrinth:valkyrien-skies:1.20.1-forge-2.3.0-beta.5")
-//    compileOnly "curse.maven:eureka-654384:5321630"
-//    runtimeOnly fg.deobf('maven.modrinth:eureka:1.20.1-forge-1.5.1-beta.3')
-      //compact
-//    implementation fg.deobf("maven.modrinth:distanthorizons:2.3.2-b-1.20.1")
+    // compact create
+    implementation fg.deobf("com.simibubi.create:create-1.20.1:0.5.1.j-55:slim") { transitive = false }
+    implementation fg.deobf("com.jozufozu.flywheel:flywheel-forge-1.20.1:0.6.11-13")
+    implementation fg.deobf("com.tterrag.registrate:Registrate:MC1.20-1.3.3")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 

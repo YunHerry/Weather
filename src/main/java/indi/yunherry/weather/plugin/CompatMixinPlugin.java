@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class CompatMixinPlugin implements IMixinConfigPlugin {
     public static final String VS = "valkyrienskies";
-    public static final String VS_MIXIN_PARTICLE = "indi.yunherry.weather.mixin.MixinParticle";
+    public static final String VS_MIXIN_PARTICLE = "indi.yunherry.weather.mixin.create.MixinParticle";
     public static final String VS_MIXIN_ACCESS = "indi.yunherry.weather.mixin.InvokerEntityShipCollisionUtils";
 
     @Override

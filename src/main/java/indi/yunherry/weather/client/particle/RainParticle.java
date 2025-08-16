@@ -5,7 +5,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import indi.yunherry.weather.AnimationController;
+import indi.yunherry.weather.GlobalContext;
 import indi.yunherry.weather.RayThreadPool;
+import indi.yunherry.weather.compact.create.CreateRayUtils;
 import indi.yunherry.weather.utils.ShaderUtils;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -13,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -72,7 +75,7 @@ public class RainParticle {
         return hitResult.getAcquire();
     }
 
-    public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, float zRot, int lifeSpan, float initialWidth, int camY) {
+    public RainParticle(Biome.Precipitation precipitation, Function<ClipContext, BlockHitResult> raycaster, BlockPos position, float xRot, float yRot, float zRot, int lifeSpan, float initialWidth, Level level) {
         this.precipitation = precipitation;
         this.raycaster = raycaster;
         this.blockPos = position;
@@ -134,13 +137,22 @@ public class RainParticle {
             Vec3 direction = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).normalize();
             Vec3 end = origin.add(direction.scale(32.0));
             ClipContext context = new ClipContext(origin, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
-            BlockHitResult result = this.raycaster.apply(context);
+//            BlockHitResult result = this.raycaster.apply(context);
+//            BlockHitResult result = CreateRaycastSystem.testSimpleBoundingBoxRaycast(GlobalContext.level, origin, end);
+            BlockHitResult result = CreateRayUtils.clipWithContraptions(GlobalContext.level, origin, end);
             Vec3 hit = result.getType() == HitResult.Type.MISS ? end : result.getLocation();
             float distance = (float) origin.distanceTo(hit);
             this.length.setRelease(distance);
             this.hitResult.setRelease(result);
 
         });
+
+//        if (this.getHitResult().getType() != HitResult.Type.MISS) {
+//            BlockPos testBlockPos = this.getHitResult().getBlockPos();
+//            System.out.println(GlobalContext.level.getBlockState(testBlockPos).getBlock().getName());
+////            if (GlobalContext.level.getBlockState(testBlockPos).getBlock() == Blocks.VOID_AIR) {
+////            }
+//        }
         this.widthO = this.width;
         if (this.tickCount < this.lifeSpan - 20)
             this.width = this.initialWidth * Math.min(1.0F, (float) this.tickCount / 20.0F);

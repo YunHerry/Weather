@@ -1,9 +1,9 @@
-package fun.qu_an.minecraft.asyncparticles.client.compat.create;
+package indi.yunherry.weather.compact.create;
 
 import net.minecraft.world.phys.AABB;
 
 import java.util.List;
 
 public interface ContraptionAddon {
-	List<AABB> asyncparticles$getAabbs();
+	List<AABB> weather$getAabbs();
 }

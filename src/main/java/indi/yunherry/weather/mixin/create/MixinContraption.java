@@ -1,4 +1,4 @@
-package indi.yunherry.weather.mixin;
+package indi.yunherry.weather.mixin.create;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -22,7 +22,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-
+/**
+ *
+ *  Based on CreateUtil from AsyncParticles by qu-an
+ *  <a href="https://github.com/Harveykang/AsyncParticles">github</a>
+ * */
 @Mixin(Contraption.class)
 public class MixinContraption implements ContraptionAddon {
 	@Shadow(remap = false)
@@ -31,18 +35,22 @@ public class MixinContraption implements ContraptionAddon {
 	protected ContraptionWorld world;
 	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 	@Shadow(remap = false) public Optional<List<AABB>> simplifiedEntityColliders;
+
 	@Unique
-	private List<AABB> asyncparticles$aabbs;
+	private volatile List<AABB> weather$aabbs;
 	@Unique
-	private final Object asyncparticles$lock = new Object();
+	private final Object weather$lock = new Object();
+
+	@Unique
+	private static final VoxelShape EMPTY_SHAPE = net.minecraft.world.phys.shapes.Shapes.empty();
 
 	@Dynamic
 	@WrapOperation(method = {
-		"lambda$gatherBBsOffThread$17()Ljava/util/List;",
-		"lambda$gatherBBsOffThread$25()Ljava/util/List;",
-		"lambda$gatherBBsOffThread$26()Ljava/util/List;"
+			"lambda$gatherBBsOffThread$17()Ljava/util/List;",
+			"lambda$gatherBBsOffThread$25()Ljava/util/List;",
+			"lambda$gatherBBsOffThread$26()Ljava/util/List;"
 	}, at = @At(value = "INVOKE",
-		target = "Lnet/minecraft/world/phys/shapes/VoxelShape;toAabbs()Ljava/util/List;"))
+			target = "Lnet/minecraft/world/phys/shapes/VoxelShape;toAabbs()Ljava/util/List;"))
 	private List<AABB> optimizeVoxelShape(VoxelShape instance, Operation<List<AABB>> original) {
 		return original.call(instance);
 	}
@@ -50,38 +58,61 @@ public class MixinContraption implements ContraptionAddon {
 	@WrapOperation(method = "gatherBBsOffThread", remap = false, at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAccept(Ljava/util/function/Consumer;)Ljava/util/concurrent/CompletableFuture;"))
 	private CompletableFuture<Void> gatherBBsOffThread(CompletableFuture<?> instance, Consumer<?> action, Operation<CompletableFuture<Void>> original) {
 		return original.call(instance, action).thenRun(() -> {
-			asyncparticles$aabbs = null;
+			weather$aabbs = null;
 		});
 	}
-	//给碰撞体混入了一个对象
+
 	@Override
-	public List<AABB> asyncparticles$getAabbs() {
-		//如果存在简单碰撞体,就返回简单碰撞体
+	public List<AABB> weather$getAabbs() {
 		if (simplifiedEntityColliders.isPresent()) {
 			return simplifiedEntityColliders.get();
 		}
-		//不存在就返回自己计算的,前提是已经计算了
-		if (asyncparticles$aabbs != null) {
-			return asyncparticles$aabbs;
+
+		List<AABB> result = weather$aabbs;
+
+		if (result != null) {
+			return result;
 		}
-		//加锁
-		synchronized (asyncparticles$lock){
-			//如果不为空就返回
-			if (asyncparticles$aabbs != null) {
-				return asyncparticles$aabbs;
+
+		synchronized (weather$lock) {
+			result = weather$aabbs;
+			if (result != null) {
+				return result;
 			}
-			//如果为空就进行计算
-			List<AABB> aabbs = new ArrayList<>();
-			// 获取精确碰撞形状
+
+			int estimatedSize = Math.max(16, blocks.size() / 4);
+			List<AABB> aabbs = new ArrayList<>(estimatedSize);
+
+			ContraptionWorld cachedWorld = this.world;
+
 			for (Map.Entry<BlockPos, StructureTemplate.StructureBlockInfo> entry : blocks.entrySet()) {
 				StructureTemplate.StructureBlockInfo info = entry.getValue();
 				BlockPos localPos = entry.getKey();
-				VoxelShape collisionShape = info.state().getCollisionShape(this.world, localPos, CollisionContext.empty());
-				if (!collisionShape.isEmpty()) {
-					aabbs.addAll(collisionShape.move(localPos.getX(), localPos.getY(), localPos.getZ()).toAabbs());
+
+				net.minecraft.world.level.block.state.BlockState blockState = info.state();
+
+				if (blockState.isAir()) {
+					continue;
+				}
+
+				VoxelShape collisionShape = blockState.getCollisionShape(cachedWorld, localPos, CollisionContext.empty());
+				if (collisionShape != EMPTY_SHAPE && !collisionShape.isEmpty()) {
+					int x = localPos.getX();
+					int y = localPos.getY();
+					int z = localPos.getZ();
+
+					VoxelShape movedShape = collisionShape.move(x, y, z);
+					List<AABB> shapeAABBs = movedShape.toAabbs();
+					if (!shapeAABBs.isEmpty()) {
+						aabbs.addAll(shapeAABBs);
+					}
 				}
 			}
-			return asyncparticles$aabbs = aabbs;
+			if (aabbs.size() < aabbs.size() * 0.75) {
+				aabbs = new ArrayList<>(aabbs);
+			}
+
+			return weather$aabbs = aabbs;
 		}
 	}
 }
