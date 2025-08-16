@@ -16,7 +16,6 @@ import org.joml.Quaternionf;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 @OnlyIn(Dist.CLIENT)
 public class RippleParticle extends WeatherParticle {
     private final SpriteSet sprites;

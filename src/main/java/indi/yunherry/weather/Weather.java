@@ -34,6 +34,7 @@ import static indi.yunherry.weather.factory.factory.ParticleFactory.PARTICLES;
 
 //TODO: 备忘,水草/荷叶靠近水面的时候会产生波纹
 //TODO: 备忘,手上拿着火把会产生烟雾
+//TODO: 现在水草不在水面上也会导致产生波纹
 @SuppressWarnings("deprecation")
 @Mod(Weather.MOD_ID)
 @FrameApplication

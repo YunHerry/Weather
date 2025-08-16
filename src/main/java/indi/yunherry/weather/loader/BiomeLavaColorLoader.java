@@ -4,12 +4,15 @@ import com.google.gson.JsonObject;
 import indi.yunherry.weather.utils.ColorMapUtils;
 import indi.yunherry.weather.utils.ColorUtils;
 import org.joml.Vector4f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BiomeLavaColorLoader extends AbstractLoader<SimpleBiomeColorConfigData.BiomeColorData>{
     public static final String BIOME_LAVA_COLOR_LOADER = "BiomeLavaColorLoader";
+    private static final Logger log = LoggerFactory.getLogger(BiomeLavaColorLoader.class);
     private SimpleBiomeColorConfigData config;
 
     public Integer getColorMapByString(String biomeId) {
@@ -43,12 +46,12 @@ public class BiomeLavaColorLoader extends AbstractLoader<SimpleBiomeColorConfigD
                 config.data().forEach((biomeId, biomeColorData) -> {
                     int color = ColorUtils.parseColor(biomeColorData.color());
                     colorMaps.put(biomeId, color);
-                    System.out.println("Generated color map for biome: " + biomeId);
+                    log.info("Generated color map for biome: {}",biomeId);
                 });
-                System.out.println("命名空间: " + getNamespace());
+                log.debug("namespace: {}",getNamespace());
             }
         } catch (Exception e) {
-            System.err.println("Failed to process JSON: " + e.getMessage());
+            log.error("Failed to process JSON: " + e.getMessage());
         }
     }
 

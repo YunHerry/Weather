@@ -1,6 +1,7 @@
 package indi.yunherry.weather.utils;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import indi.yunherry.weather.Weather;
 import indi.yunherry.weather.loader.BiomeColorConfigData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.joml.Vector4f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
@@ -29,6 +32,8 @@ import java.util.Map;
 import static indi.yunherry.weather.utils.ColorUtils.parseColor;
 
 public class ColorMapUtils {
+    private static final Logger log = LoggerFactory.getLogger(ColorMapUtils.class);
+
     /**
      * 根据起始颜色、中间颜色、结束颜色和步数生成颜色映射
      *
@@ -162,7 +167,7 @@ public class ColorMapUtils {
      */
     public static void generateDebugImages(Map<String, int[]> colorMaps, String namespace) {
         if (colorMaps.isEmpty()) {
-            System.out.println("No color maps to generate debug images for.");
+            log.debug("No color maps to generate debug images for.");
             return;
         }
 
@@ -170,20 +175,18 @@ public class ColorMapUtils {
             // 创建调试目录，包含namespace子目录
             Path debugDir = createDebugDirectory(namespace);
 
-            System.out.println("Generating debug images for " + colorMaps.size() + " biomes in namespace: " + namespace);
-
+            log.info("Generating debug images for {} biomes in namespace: {}",colorMaps.size(),namespace);
             colorMaps.forEach((biomeId, colorMap) -> {
                 try {
                     generateBiomeColorImage(debugDir, biomeId, colorMap);
                 } catch (Exception e) {
-                    System.err.println("Failed to generate debug image for biome: " + biomeId + " - " + e.getMessage());
+                    log.error("Failed to generate debug image for biome: {} - {}",biomeId, e.getMessage());
                 }
             });
 
-            System.out.println("Debug images generated successfully in: " + debugDir);
-
+            log.info("Debug images generated successfully in: {}",debugDir);
         } catch (Exception e) {
-            System.err.println("Failed to generate debug images: " + e.getMessage());
+            log.error("Failed to generate debug images: {}",e.getMessage());
             e.printStackTrace();
         }
     }
@@ -195,16 +198,12 @@ public class ColorMapUtils {
      * @return 创建的目录路径
      */
     private static Path createDebugDirectory(String namespace) throws IOException {
-        // 获取minecraft游戏目录
         File gameDir = Minecraft.getInstance().gameDirectory;
 
-        // 清理namespace名称，避免文件系统不支持的字符
         String cleanNamespace = sanitizeFileName(namespace);
 
-        // 构建路径：game_dir/weather/debug/namespace
-        Path debugPath = Paths.get(gameDir.getAbsolutePath(), "weather", "debug", cleanNamespace);
+        Path debugPath = Paths.get(gameDir.getAbsolutePath(), Weather.MOD_ID, "debug", cleanNamespace);
 
-        // 创建目录（如果不存在）
         Files.createDirectories(debugPath);
 
         return debugPath;
@@ -215,7 +214,7 @@ public class ColorMapUtils {
      */
     private static void generateBiomeColorImage(Path debugDir, String biomeId, int[] colorMap) throws IOException {
         if (colorMap == null || colorMap.length == 0) {
-            System.out.println("Skipping empty color map for biome: " + biomeId);
+            log.info("Skipping empty color map for biome: {}",biomeId);
             return;
         }
 
@@ -224,14 +223,11 @@ public class ColorMapUtils {
         int height = colorMap.length; // 高度等于颜色映射长度
 
         // 创建图片
-        NativeImage image = new NativeImage(width, height, false);
 
-        try {
-            // 填充颜色数据
+        try (NativeImage image = new NativeImage(width, height, false)) {
             for (int y = 0; y < height; y++) {
                 int color = colorMap[y];
 
-                // 转换ARGB到ABGR (NativeImage使用ABGR格式)
                 int argb = color;
                 int a = (argb >> 24) & 0xFF;
                 int r = (argb >> 16) & 0xFF;
@@ -245,19 +241,13 @@ public class ColorMapUtils {
                 }
             }
 
-            // 生成文件名（替换特殊字符）
             String fileName = sanitizeFileName(biomeId) + ".png";
             Path filePath = debugDir.resolve(fileName);
-
             // 保存图片
             image.writeToFile(filePath.toFile());
-
-            System.out.println("Generated debug image: " + fileName + " (" + width + "x" + height + ")");
-
-        } finally {
-            // 释放图片资源
-            image.close();
+            log.debug("Generated debug image for biome: {} ( {} x {} )", fileName, width, height);
         }
+        // 释放图片资源
     }
 
     /**
@@ -283,21 +273,19 @@ public class ColorMapUtils {
             Path debugDir = createDebugDirectory(namespace);
             Path horizontalDir = debugDir.resolve("horizontal");
             Files.createDirectories(horizontalDir);
-
-            System.out.println("Generating horizontal color bars for namespace: " + namespace);
-
+            log.debug("Generating horizontal color bars for namespace: {}",namespace);
             colorMaps.forEach((biomeId, colorMap) -> {
                 try {
                     generateHorizontalColorBar(horizontalDir, biomeId, colorMap);
                 } catch (Exception e) {
-                    System.err.println("Failed to generate horizontal color bar for: " + biomeId);
+                    log.error("Failed to generate horizontal color bar for: {}",biomeId);
+                    log.error("Failed Info: {}",e.getMessage());
                 }
             });
-
-            System.out.println("Horizontal color bars generated in: " + horizontalDir.toString());
+            log.debug("Horizontal color bars generated in: {}",horizontalDir);
 
         } catch (Exception e) {
-            System.err.println("Failed to generate horizontal color bars: " + e.getMessage());
+            log.error("Failed to generate horizontal color bars: {}",e.getMessage());
         }
     }
 
@@ -346,11 +334,11 @@ public class ColorMapUtils {
      */
     public void debugGenerateImages(BiomeColorConfigData config, Map<String, int[]> colorMaps, String namespace) {
         if (config != null && !colorMaps.isEmpty()) {
-            System.out.println("Manually generating debug images for namespace: " + namespace);
+            log.debug("Manually generating debug images for namespace: {}",namespace);
             generateDebugImages(colorMaps, namespace);
             generateHorizontalColorBars(colorMaps, namespace);
         } else {
-            System.out.println("No color maps available for debug image generation.");
+            log.debug("No color maps available for debug image generation.");
         }
     }
 
@@ -361,23 +349,22 @@ public class ColorMapUtils {
      */
     public void generateDebugImagesForNamespaces(Map<String, Map<String, int[]>> namespacedColorMaps) {
         if (namespacedColorMaps.isEmpty()) {
-            System.out.println("No namespaced color maps to generate debug images for.");
+            log.debug("No namespaced color maps to generate debug images for.");
             return;
         }
 
-        System.out.println("Generating debug images for " + namespacedColorMaps.size() + " namespaces...");
-
+        log.debug("Generating debug images for {} namespaces...", namespacedColorMaps.size());
         namespacedColorMaps.forEach((namespace, colorMaps) -> {
             try {
-                System.out.println("Processing namespace: " + namespace + " (" + colorMaps.size() + " color maps)");
+                log.debug("Processing namespace:  {} ({} color maps)", namespace,colorMaps.size());
                 generateDebugImages(colorMaps, namespace);
                 generateHorizontalColorBars(colorMaps, namespace);
             } catch (Exception e) {
-                System.err.println("Failed to generate debug images for namespace: " + namespace + " - " + e.getMessage());
+                log.error("Failed to generate debug images for namespace: {} - {}",namespace,e);
             }
         });
 
-        System.out.println("All namespace debug images generated successfully.");
+        log.info("All namespace debug images generated successfully.");
     }
 
     /**
@@ -394,11 +381,10 @@ public class ColorMapUtils {
             if (Files.exists(debugPath)) {
                 // 递归删除目录及其内容
                 Files.walk(debugPath).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-
-                System.out.println("Cleaned debug directory for namespace: " + namespace);
+                log.debug("Deleted debug image directory: {}",debugPath);
             }
         } catch (Exception e) {
-            System.err.println("Failed to clean debug directory for namespace: " + namespace + " - " + e.getMessage());
+            log.error("Failed to clean debug directory for namespace: {} - {}",namespace,e.getMessage());
         }
     }
 

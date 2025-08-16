@@ -1,15 +1,19 @@
 package indi.yunherry.weather.loader;
 
 import com.google.gson.JsonObject;
+import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.utils.ColorMapUtils;
 import indi.yunherry.weather.utils.ColorUtils;
 import org.joml.Vector4f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class BiomeSkyColorLoader extends AbstractLoader<BiomeColorConfigData.BiomeColorData>{
+public class BiomeSkyColorLoader extends AbstractLoader<BiomeColorConfigData.BiomeColorData> {
     public static final String BIOME_SKY_COLOR_LOADER = "BiomeSkyColorLoader";
+    private static final Logger log = LoggerFactory.getLogger(BiomeSkyColorLoader.class);
     private BiomeColorConfigData config;
 
     public int[] getColorMapByString(String biomeId) {
@@ -17,6 +21,7 @@ public class BiomeSkyColorLoader extends AbstractLoader<BiomeColorConfigData.Bio
     }
 
     private final Map<String, int[]> colorMaps = new HashMap<>();
+
     private BiomeSkyColorLoader() {
     }
 
@@ -43,14 +48,17 @@ public class BiomeSkyColorLoader extends AbstractLoader<BiomeColorConfigData.Bio
                 config.data().forEach((biomeId, biomeColorData) -> {
                     int[] colorMap = ColorMapUtils.generateColorMap(biomeColorData, config.step());
                     colorMaps.put(biomeId, colorMap);
-                    System.out.println("Generated color map for biome: " + biomeId);
+                    log.info("Generated color map for biome: {}", biomeId);
                 });
-                System.out.println("命名空间: " + getNamespace());
-                ColorMapUtils.generateDebugImages(colorMaps,getNamespace());
+                log.debug("namespace: {}", getNamespace());
+                if (WorldContext.isDebugMode) {
+                    ColorMapUtils.generateDebugImages(colorMaps, getNamespace());
+                }
+
             }
 
         } catch (Exception e) {
-            System.err.println("Failed to process JSON: " + e.getMessage());
+            log.error("Failed to process JSON: " + e.getMessage());
         }
 
     }
@@ -62,6 +70,6 @@ public class BiomeSkyColorLoader extends AbstractLoader<BiomeColorConfigData.Bio
 
     @Override
     public Vector4f findColorByKey(String key, LoaderConfig loaderConfig) {
-        return ColorMapUtils.getColorFromMap(getColorMapByString(key),getYAxis(loaderConfig), ColorUtils.parseColor(config.defaultColor()));
+        return ColorMapUtils.getColorFromMap(getColorMapByString(key), getYAxis(loaderConfig), ColorUtils.parseColor(config.defaultColor()));
     }
 }

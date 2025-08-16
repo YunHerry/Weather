@@ -136,9 +136,6 @@ public class RainParticle {
 
             Vec3 direction = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).normalize();
             Vec3 end = origin.add(direction.scale(32.0));
-            ClipContext context = new ClipContext(origin, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
-//            BlockHitResult result = this.raycaster.apply(context);
-//            BlockHitResult result = CreateRaycastSystem.testSimpleBoundingBoxRaycast(GlobalContext.level, origin, end);
             BlockHitResult result = CreateRayUtils.clipWithContraptions(GlobalContext.level, origin, end);
             Vec3 hit = result.getType() == HitResult.Type.MISS ? end : result.getLocation();
             float distance = (float) origin.distanceTo(hit);
@@ -147,12 +144,6 @@ public class RainParticle {
 
         });
 
-//        if (this.getHitResult().getType() != HitResult.Type.MISS) {
-//            BlockPos testBlockPos = this.getHitResult().getBlockPos();
-//            System.out.println(GlobalContext.level.getBlockState(testBlockPos).getBlock().getName());
-////            if (GlobalContext.level.getBlockState(testBlockPos).getBlock() == Blocks.VOID_AIR) {
-////            }
-//        }
         this.widthO = this.width;
         if (this.tickCount < this.lifeSpan - 20)
             this.width = this.initialWidth * Math.min(1.0F, (float) this.tickCount / 20.0F);
@@ -173,7 +164,7 @@ public class RainParticle {
         Vector3f adjustedCamPos = new Vector3f((float) camX, (float) camY, (float) camZ).sub(this.position).rotate(inverseRotation).add(this.position);
         float angleToCam = (float) Mth.atan2(this.position.x - adjustedCamPos.x, this.position.z - adjustedCamPos.z);
         //旋转
-        float animationTick = AnimationController.getAnimationPartialTick(partialTick);
+//        float animationTick = AnimationController.getAnimationPartialTick(partialTick);
         stack.mulPose(inverseRotation.invert());
         stack.mulPose(Axis.YP.rotation(angleToCam));
         Matrix4f mat = stack.last().pose();

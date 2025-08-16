@@ -9,11 +9,6 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static indi.yunherry.weather.WorldContext.random;
-//import org.valkyrienskies.mod.common.VSClientGameUtils;
 
 @OnlyIn(Dist.CLIENT)
 public class SnowParticle extends WeatherParticle {

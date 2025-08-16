@@ -37,20 +37,16 @@ public class FileLoaderUtils {
      */
     public static void loadJsonFiles(String namespace, Predicate<JsonObject> filterFn, Consumer<JsonObject> processor) {
 
-        System.out.println("Loading JSON files from namespace: " + namespace);
         log.info("Loading JSON Files from Namespace: {}", namespace);
 
-        // 首先获取所有资源文件
         Map<ResourceLocation, Resource> resources = resourceManager.listResources("biome", resourceLocation -> resourceLocation.getPath().endsWith(".json") // 只加载JSON文件
         );
 
         for (Map.Entry<ResourceLocation, Resource> entry : resources.entrySet()) {
             try {
-                // 读取并解析 JSON
                 JsonObject jsonObject = parseJsonFromResource(entry.getValue());
 
                 if (jsonObject != null && filterFn.test(jsonObject)) {
-                    // 直接处理 JsonObject，无返回值
                     processor.accept(jsonObject);
                 }
             } catch (Exception e) {
