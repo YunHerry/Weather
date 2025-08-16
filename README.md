@@ -5,9 +5,10 @@ Yun's Weather is a visual client-side mod for Minecraft:java, in which modificat
 Currently in open BETA, you may experience bugs, crashes and instability. I will implement more effects.
 
 ## FEATURES
-* Particle system compatible with vs2
+* Particle system compatible with vs2,create
 * Global Wind Impact Particle
 * Rain on the wall generates splashes
+* Dynamic biome color
 * More to come!
 
 ## MODPACK
