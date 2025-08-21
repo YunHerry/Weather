@@ -4,12 +4,16 @@ import com.mojang.logging.LogUtils;
 import indi.yunherry.weather.annotation.FrameApplication;
 import indi.yunherry.weather.factory.factory.Factory;
 import indi.yunherry.weather.hook.ConfigHandler;
+import indi.yunherry.weather.loader.BiomeFogDistanceLoader;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.material.FogType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -65,6 +69,7 @@ public class Weather {
     private void commonSetup(RegisterEvent event) {
 
     }
+
     public static boolean isDebugLevel() {
         return "debug".equals(System.getProperty("forge.logging.console.level"));
     }

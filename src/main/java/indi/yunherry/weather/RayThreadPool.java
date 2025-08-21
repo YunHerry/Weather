@@ -7,7 +7,7 @@ public class RayThreadPool {
             Math.max(2, Runtime.getRuntime().availableProcessors() - 1),
             Math.max(2, Runtime.getRuntime().availableProcessors() - 1),
             0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(20),
+            new LinkedBlockingQueue<>(200),
             new ThreadPoolExecutor.DiscardOldestPolicy()
     );
 

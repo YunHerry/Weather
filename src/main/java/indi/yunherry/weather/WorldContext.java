@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
-
+//Refactor: 与GlobalContext职责划分不清晰
 public class WorldContext {
     public static boolean isDebugMode = false;
     public static WeatherType nowWeather = WeatherType.NONE;
@@ -37,6 +37,7 @@ public class WorldContext {
     public static final int MAX_EASE_DURATION = 40; // 最大缓动时间
     public static final float MAX_EASE_OFFSET = 30.0f; // 最大角度偏移
     public static final List<RendererEngine> renderers = new ArrayList<>();
+    //TODO: 在使用的bean被各处引用结束后,应该清除缓存,触发gc
     public static final Map<String, RegistryObject<SimpleParticleType>> particleBeans = new ConcurrentHashMap<>();
     public static final Map<String, ParticleRenderer> beans = new ConcurrentHashMap<>();
     public static Class<?> mainClass;

@@ -125,7 +125,8 @@ public class RainParticle {
 
     public void tick() {
         this.tickCount++;
-        alpha = 1.0f - ((float) this.tickCount / this.lifeSpan);
+        alpha = 1f - ((float) this.tickCount / this.lifeSpan);
+//        alpha = (float) Math.pow(GlobalContext.getLoaderConfig().rain(),1.2);
         //TODO: 不是很优良的解法
         //初始化的时候执行一次,tick后的放到异步执行
         RayThreadPool.submitTask(() -> {
@@ -154,6 +155,7 @@ public class RainParticle {
     //TODO: 贴图左右扰动
     //TODO: 跟随风更新角度 about version: 2.1.0-beta
     public void render(PoseStack stack, VertexConsumer consumer, float partialTick, int packedLight, double camX, double camY, double camZ, float r, float g, float b) {
+
         //平移到指定位置
         stack.translate(this.position.x, this.position.y, this.position.z);
         //创建旋转角度
@@ -168,7 +170,7 @@ public class RainParticle {
         stack.mulPose(inverseRotation.invert());
         stack.mulPose(Axis.YP.rotation(angleToCam));
         Matrix4f mat = stack.last().pose();
-        float vOffset = ((float) this.tickCount + partialTick) * -0.1F;
+        float vOffset = ((float) this.tickCount + partialTick) * -1F * (float) GlobalContext.getLoaderConfig().rain() * 0.1f;
         float width = Mth.lerp(partialTick, this.widthO, this.width);
         float u1 = width / 2.0F * 0.5F + 0.5F;
         float u0 = 0.5F - width / 2.0F * 0.5F;

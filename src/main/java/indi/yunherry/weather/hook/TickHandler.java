@@ -14,14 +14,14 @@ public class TickHandler {
 
     @SubscribeEvent
     public static void onTick(TickEvent.LevelTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
-            GlobalContext.update();
-        }
+//        if (event.phase == TickEvent.Phase.START) {
+//            GlobalContext.update();
+//        }
     }
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
-            AnimationController.tick(Minecraft.getInstance().level);
-        }
+//        if (event.phase == TickEvent.Phase.START) {
+//            AnimationController.tick(Minecraft.getInstance().level);
+//        }
     }
 }

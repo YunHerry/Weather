@@ -1,6 +1,7 @@
 package indi.yunherry.weather.event;
 
 import indi.yunherry.weather.AnimationController;
+import indi.yunherry.weather.GlobalContext;
 import indi.yunherry.weather.WindDirectionType;
 import indi.yunherry.weather.WorldContext;
 import net.minecraft.ChatFormatting;
@@ -91,7 +92,7 @@ public class DebugEvent {
         Level level = player.level();
         BlockPos pos = player.blockPosition();
         Component text = Component.literal(String.format("FPS: %s",  Minecraft.getInstance().getFps()));
-        Component text1 = Component.literal(String.format("雨PartialTick: %f", AnimationController.getAnimationPartialTick(event.getPartialTick())));
+        Component text1 = Component.literal(String.format("Rain: %f", GlobalContext.getLoaderConfig().rain()));
         // 计算屏幕位置（物品栏上方居中）
         int screenWidth = 50;
         int yPos = 4;

@@ -4,7 +4,6 @@ import net.minecraft.world.phys.Vec3;
 
 public record LoaderConfig(
         double rain,
-        double playerY,
         double renderDistance,
         int skyLight,
         Vec3 camPos
@@ -15,19 +14,17 @@ public record LoaderConfig(
 
     public static class Builder {
         private double rain = 0.0;
-        private double playerY = 64.0;
         private double renderDistance = 16.0;
         private int skyLight = 15;
         private Vec3 camPos = new Vec3(0, 0, 0);
 
         public Builder rain(double rain) { this.rain = rain; return this; }
-        public Builder playerY(double playerY) { this.playerY = playerY; return this; }
         public Builder renderDistance(double renderDistance) { this.renderDistance = renderDistance; return this; }
         public Builder skyLight(int skyLight) { this.skyLight = skyLight; return this; }
         public Builder camPos(Vec3 camPos) { this.camPos = camPos; return this; }
 
         public LoaderConfig build() {
-            return new LoaderConfig(rain, playerY, renderDistance, skyLight, camPos);
+            return new LoaderConfig(rain, renderDistance, skyLight, camPos);
         }
     }
 }

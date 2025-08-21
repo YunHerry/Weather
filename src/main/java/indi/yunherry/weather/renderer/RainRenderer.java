@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import indi.yunherry.weather.AnimationController;
+import indi.yunherry.weather.GlobalContext;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.client.particle.RainParticle;
@@ -56,8 +57,9 @@ public class RainRenderer extends WeatherRenderer {
         //正值朝向东
         //22.5f可以作为暴风雨的最大角度
         //斜角会导致aabb区域需要扩大,因为当出现斜角后aabb不是中心了
+        //应该以周围采样检查是否应该下雨
         //TODO: 实现斜角雨/暴风雪
-
+        //暴雨时aabb应该缩小
         float xRot = (0) * ((float) Math.PI / 180.0F);
         float zRot = (0) * ((float) Math.PI / 180.0F);
 //        switch (WorldContext.windDirection) {
@@ -104,16 +106,17 @@ public class RainRenderer extends WeatherRenderer {
         Biome biome = this.mc.level.getBiome(camPos).value();
         boolean isRainPrecipitation = biome.getPrecipitationAt(camPos) == Biome.Precipitation.RAIN;
         //生成粒子
+        float rainIntensity = (float) GlobalContext.getLoaderConfig().rain() * 0.25f;
         if (isRainPrecipitation && level.isRaining()) {
 //            float rainIntensity = this.mc.level.getRainLevel(0);
-            float rainIntensity = 0.8f;
+
             //TODO isThundering?
 //            int lifeSpanBase = level.isThundering() ? 20 : 10;
             int lifeSpanBase = 20;
             //框定范围
 
             Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
-            if (rainIntensity > 0.0F && biome.hasPrecipitation()) {
+            if (rainIntensity > 0.0F && biome.hasPrecipitation() ) {
                 ThreadLocalRandom random = ThreadLocalRandom.current();
                 for (int x = minX; x < maxX; x++) {
                     for (int z = minZ; z < maxZ; z++) {
@@ -123,10 +126,10 @@ public class RainRenderer extends WeatherRenderer {
                             BlockPos pos = new BlockPos(x, y, z);
                             RandomSource blockRandom = RandomSource.create(pos.asLong());
                             if (!this.precipitationQuads.containsKey(pos)) {
-                                if (blockRandom.nextInt(100) <= 1) {
+                                if (blockRandom.nextInt(100)<= 1) {
                                     float widthModifier = 2.0F;
 
-                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F,zRot + random.nextFloat() * 0.1F, lifeSpanBase + random.nextInt(lifeSpanBase), rainIntensity * widthModifier, level);
+                                    RainParticle quad = new RainParticle(precipitation, this.mc.level::clip, pos, xRot + random.nextFloat() * 0.1F, yRot + random.nextFloat() * 0.1F,zRot + random.nextFloat() * 0.1F, lifeSpanBase + random.nextInt(lifeSpanBase),   1.6f, level);
                                     this.precipitationQuads.put(pos, quad);
                                     this.quadsByPrecipitation.computeIfAbsent(precipitation, p -> Lists.newArrayList()).add(quad);
                                 }
@@ -144,7 +147,6 @@ public class RainRenderer extends WeatherRenderer {
             RainParticle quad = entry.getValue();
             //渲染雨滴的开始位置
             BlockPos pos = entry.getKey();
-
             if (!box.contains(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) || quad.isDead()) {
                 this.quadsByPrecipitation.get(quad.getPrecipitation()).remove(quad);
                 rain.remove();
@@ -152,7 +154,7 @@ public class RainRenderer extends WeatherRenderer {
             }
             quad.tick();
             //粒子生成不正确,侧面
-            if (random.nextInt(100) < 95) continue;
+            if (random.nextInt(100) < 90) continue;
             if (isRainPrecipitation) {
                 Level levelreader = this.mc.level;
                 BlockHitResult hitResult = quad.getHitResult();
