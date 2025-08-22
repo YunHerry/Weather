@@ -9,8 +9,8 @@ Currently in open BETA, you may experience bugs, crashes and instability. I will
 * Global Wind Impact Particle
 * Rain on the wall generates splashes
 * Dynamic biome color
+* Dynamic biome sky color
 * More to come!
-
 ## MODPACK
 
 Weather can be used in whatever modpack you so desire, though please be aware of potential compatibility issues.
