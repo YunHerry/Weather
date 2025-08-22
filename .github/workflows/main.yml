@@ -30,6 +30,3 @@ jobs:
         with:
           name: forge-mod
           path: build/libs/*.jar
-        with:
-          name: forge-mod
-          path: build/libs/*.jar
