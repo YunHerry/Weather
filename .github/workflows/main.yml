@@ -24,7 +24,7 @@ jobs:
       - name: Grant Gradle executable
         run: chmod +x ./gradlew
 
-      - name: Build Mod
+      - name: Build My Mod
         run: ./gradlew build
 
       - name: Upload Artifacts
