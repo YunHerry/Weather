@@ -21,4 +21,4 @@ Weather can be used in whatever modpack you so desire, though please be aware of
 ## FAQ
 
 * If you have any questions you can submit an [issue](https://github.com/YunHerry/Weather/issues "ISSUE")
-* If he's not compatible, you should provide a crash report, except for the mods that I explicitly labeled as incompatible..
+* If he's not compatible, you should provide a crash report, except for the mods that I explicitly labeled as incompatible.
