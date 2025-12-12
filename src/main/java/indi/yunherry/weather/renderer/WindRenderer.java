@@ -61,7 +61,7 @@ public class WindRenderer extends ParticleRenderer {
             log.info("Wind direction changed from {} to {}. Starting transition.", this.lastWindDirection, windDirection);
             // 更新最后记录的风向
             this.lastWindDirection = windDirection;
-            SoundUtils.playWindInDirection(windDirection,20,40f,1.0f);
+            SoundUtils.playWindInDirection(windDirection, 20, 40f, 1.0f);
         }
 
         // 3. 如果正在播放动画，则更新动画进度
@@ -76,11 +76,11 @@ public class WindRenderer extends ParticleRenderer {
 
         // 4. 处理粒子效果，并与动画关联
         // 如果没下雨，并且当前有风，则尝试生成粒子
-        if (!level.isRaining() && windDirection != WindDirectionType.NONE) {
+        if (level != null && !level.isRaining() && windDirection != WindDirectionType.NONE) {
             ThreadLocalRandom random = ThreadLocalRandom.current();
             // 将粒子生成概率与动画过渡值关联
             // windTransition 从 0 -> 1，生成概率从 0% -> 8%
-            int spawnChance = (int)(8 * this.windTransition);
+            int spawnChance = (int) (8 * this.windTransition);
             if (random.nextInt(100) < spawnChance) {
                 level.addParticle(
                         WorldContext.particleBeans.get("wind").get(),
@@ -92,11 +92,11 @@ public class WindRenderer extends ParticleRenderer {
         }
     }
 
-    // --- 新增的公共方法，用于获取平滑的动画值 ---
 
     /**
      * 获取平滑的风力过渡动画值 (partialTick)。
      * 其他渲染器或逻辑可以调用此方法来获取一个0到1之间平滑变化的值，以实现同步的动画效果。
+     *
      * @param partialTicks 渲染引擎提供的部分刻（代表当前帧在两个游戏刻之间的位置）
      * @return 介于 0.0 和 1.0 之间的平滑动画值。
      */

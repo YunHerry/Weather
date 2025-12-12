@@ -52,35 +52,29 @@ public class ColorMapUtils {
             return new int[]{parseColor(midColor)};
         }
 
-        // 解析颜色
         int startRgb = parseColor(startColor);
         int midRgb = parseColor(midColor);
         int endRgb = parseColor(endColor);
 
-        // 提取RGB分量
         Color startColorObj = new Color(startRgb);
         Color midColorObj = new Color(midRgb);
         Color endColorObj = new Color(endRgb);
 
         int[] colorMap = new int[step];
 
-        // 如果只有2步，直接返回起始和结束颜色
         if (step == 2) {
             colorMap[0] = startRgb;
             colorMap[1] = endRgb;
             return colorMap;
         }
 
-        // 计算中点位置
         int midPoint = step / 2;
 
-        // 生成从起始到中间的颜色渐变
         for (int i = 0; i <= midPoint; i++) {
             float ratio = (float) i / midPoint;
             colorMap[i] = interpolateColor(startColorObj, midColorObj, ratio);
         }
 
-        // 生成从中间到结束的颜色渐变
         for (int i = midPoint + 1; i < step; i++) {
             float ratio = (float) (i - midPoint) / (step - 1 - midPoint);
             colorMap[i] = interpolateColor(midColorObj, endColorObj, ratio);
@@ -89,20 +83,19 @@ public class ColorMapUtils {
         return colorMap;
     }
 
-    /**
-     * 在两个颜色之间进行线性插值
-     */
     private static int interpolateColor(Color color1, Color color2, float ratio) {
-        // 确保比例在0-1之间
         ratio = Math.max(0, Math.min(1, ratio));
 
-        int red = (int) (color1.getRed() + ratio * (color2.getRed() - color1.getRed()));
-        int green = (int) (color1.getGreen() + ratio * (color2.getGreen() - color1.getGreen()));
-        int blue = (int) (color1.getBlue() + ratio * (color2.getBlue() - color1.getBlue()));
+        int r = (int) (color1.getRed() + (color2.getRed() - color1.getRed()) * ratio);
+        int g = (int) (color1.getGreen() + (color2.getGreen() - color1.getGreen()) * ratio);
+        int b = (int) (color1.getBlue() + (color2.getBlue() - color1.getBlue()) * ratio);
 
-        return new Color(red, green, blue).getRGB();
+        r = Math.max(0, Math.min(255, r));
+        g = Math.max(0, Math.min(255, g));
+        b = Math.max(0, Math.min(255, b));
+
+        return new Color(r, g, b, 255).getRGB();
     }
-
     /**
      * 从 ColorConfigData.BiomeColorData 生成颜色映射
      */
@@ -122,34 +115,32 @@ public class ColorMapUtils {
         return generateColorMap(biomeData, config.step());
     }
 
-    public static Vector4f getColorFromMap(int[] colorMap, float y,int defaultColor) {
-        if (colorMap == null || colorMap.length == 0) {
-            return new Vector4f(0.141f, 0.141f, 0.141f, 1.0f); // 默认颜色
+    public static Vector4f getColorFromMap(int[] colorMap, float y, int defaultColor) {
+        if (colorMap == null || colorMap.length <= 1) {
+            return int2Vector4fColor(defaultColor);
         }
 
-        // y 是颜色坐标，需要映射到 colorMap 数组索引
-        // 如果 y 超出 colorMap 长度，需要适当处理
+        int N = colorMap.length;
 
-        int index;
-        if (y >= colorMap.length) {
-            // 如果 y 坐标超出数组长度，映射到最后一个索引
-            index = colorMap.length - 1;
-        } else if (y < 0) {
-            // 如果 y 坐标为负数，映射到第一个索引
-            index = 0;
+        float floatIndex = Math.max(0f, Math.min(N - 1f, y));
+
+        int index1 = (int) Math.floor(floatIndex);
+        int index2 = (int) Math.ceil(floatIndex);
+
+        float ratio = floatIndex - index1;
+
+        int finalColorRgb;
+
+        if (index1 == index2) {
+            finalColorRgb = colorMap[index1];
         } else {
-            // 正常情况，直接使用 y 作为索引
-            index = Math.round(y);
+            Color colorObj1 = new Color(colorMap[index1]);
+            Color colorObj2 = new Color(colorMap[index2]);
+
+            finalColorRgb = interpolateColor(colorObj1, colorObj2, ratio);
         }
 
-        int color = colorMap[index];
-
-        float a = ((color >> 24) & 0xFF) / 255.0f;
-        float r = ((color >> 16) & 0xFF) / 255.0f;
-        float g = ((color >> 8) & 0xFF) / 255.0f;
-        float b = (color & 0xFF) / 255.0f;
-
-        return new Vector4f(r, g, b, a);
+        return int2Vector4fColor(finalColorRgb);
     }
     public static Vector4f int2Vector4fColor(int color) {
         float a = ((color >> 24) & 0xFF) / 255.0f;

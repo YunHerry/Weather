@@ -2,7 +2,9 @@ package indi.yunherry.weather.hook;
 
 import indi.yunherry.weather.AnimationController;
 import indi.yunherry.weather.GlobalContext;
+import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.renderer.ParticleRenderer;
+import indi.yunherry.weather.renderer.WeatherRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
@@ -23,5 +25,6 @@ public class TickHandler {
 //        if (event.phase == TickEvent.Phase.START) {
 //            AnimationController.tick(Minecraft.getInstance().level);
 //        }
+
     }
 }
