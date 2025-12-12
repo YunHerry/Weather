@@ -1,0 +1,89 @@
+name: Build Mod
+on:
+  push:
+    branches:
+      - 1.0.0/dev
+    paths:
+      - "README.md"
+  pull_request:
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, arm64]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          
+      - name: Configure Gradle with proxy and mirrors
+        run: |
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/gradle.properties << EOF
+          # 代理设置
+          systemProp.http.proxyHost=192.168.35.241
+          systemProp.http.proxyPort=7890
+          systemProp.https.proxyHost=192.168.35.241
+          systemProp.https.proxyPort=7890
+          systemProp.http.nonProxyHosts=localhost|127.*|[::1]
+          
+          # JVM 参数
+          org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=512m -Dhttp.proxyHost=192.168.35.241 -Dhttp.proxyPort=7890 -Dhttps.proxyHost=192.168.35.241 -Dhttps.proxyPort=7890
+          
+          # Gradle 优化
+          org.gradle.parallel=true
+          org.gradle.caching=true
+          org.gradle.daemon=false
+          EOF
+          
+          # 配置国内镜像源
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/init.gradle << 'EOF'
+          allprojects {
+              repositories {
+                  maven { url 'https://maven.aliyun.com/repository/public/' }
+                  maven { url 'https://maven.aliyun.com/repository/central' }
+                  maven { url 'https://maven.aliyun.com/repository/google' }
+                  maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+                  maven { url 'https://repo1.maven.org/maven2/' }
+                  // Minecraft 相关仓库
+                  maven { url 'https://libraries.minecraft.net/' }
+                  maven { url 'https://maven.minecraftforge.net/' }
+                  maven { url 'https://maven.parchmentmc.org/' }
+                  mavenCentral()
+                  google()
+              }
+              buildscript {
+                  repositories {
+                      maven { url 'https://maven.aliyun.com/repository/public/' }
+                      maven { url 'https://maven.aliyun.com/repository/central' }
+                      maven { url 'https://maven.aliyun.com/repository/google' }
+                      maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+                      maven { url 'https://repo1.maven.org/maven2/' }
+                      maven { url 'https://maven.minecraftforge.net/' }
+                      maven { url 'https://maven.parchmentmc.org/' }
+                      mavenCentral()
+                      google()
+                  }
+              }
+          }
+          EOF
+          
+          echo "Gradle 配置完成"
+
+      - name: Grant Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Build My Mod
+        run: ./gradlew build
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-mod
+          path: build/libs/*.jar
