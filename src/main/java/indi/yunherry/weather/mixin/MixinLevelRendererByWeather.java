@@ -23,18 +23,18 @@ public abstract class MixinLevelRendererByWeather {
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;renderSnowAndRain(Lnet/minecraft/client/renderer/LightTexture;FDDD)V"))
     public void weather$injectCustomWeatherRendering_renderLevel(PoseStack stack, float partialTick, long l, boolean flag, Camera camera, GameRenderer renderer, LightTexture texture, Matrix4f projMat, CallbackInfo ci) {
-//        WorldContext.renderers.forEach(item -> {
-//            if (item.isConditionalRendering()) {
-//                if (item.getRenderer().isRender()) {
-//                    item.getRenderer().render();
-//                }
-//            } else {
-//                item.getRenderer().render();
-//            }
-//            if (item.getRenderer() instanceof WeatherRenderer) {
-//                ((WeatherRenderer) item.getRenderer()).renderWeather(texture, partialTick, ticks);
-//            }
-//        });
+        WorldContext.renderers.forEach(item -> {
+            if (item.isConditionalRendering()) {
+                if (item.getRenderer().isRender()) {
+                    item.getRenderer().render();
+                }
+            } else {
+                item.getRenderer().render();
+            }
+            if (item.getRenderer() instanceof WeatherRenderer) {
+                ((WeatherRenderer) item.getRenderer()).renderWeather(texture, partialTick, ticks);
+            }
+        });
     }
 
     //渲染天气的render

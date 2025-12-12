@@ -19,7 +19,6 @@ public class BiomeFogDistanceLoader {
 
     @Nullable
     public static FogState modifyBiomeFog(float originalNearPlane, float originalFarPlane) {
-        //获取当前群系的雾气距离,每个群系的雾气距离是半静态,根据静态的雾气距离进行渲染当前雾气的状态
         LoaderConfig loaderConfig = GlobalContext.getLoaderConfig();
         return modifyFogParameters(level, originalNearPlane, originalFarPlane, getFogRadius((float) loaderConfig.rain(), loaderConfig.camPos().y, level.getBrightness(LightLayer.SKY, BlockPos.containing(loaderConfig.camPos()))), getFogFade((float) loaderConfig.rain(), loaderConfig.camPos().y, (int) loaderConfig.renderDistance()), lastBiomeFog);
     }
