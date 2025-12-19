@@ -5,15 +5,31 @@ import indi.yunherry.weather.WindDirectionType;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.annotation.Renderer;
 import indi.yunherry.weather.factory.factory.RendererFactory;
+import indi.yunherry.weather.mixin.ModifiableBiomeAccessor;
+import indi.yunherry.weather.mixin.ModifiableBiomeInfoBiomeInfoAccessor;
 import indi.yunherry.weather.utils.SoundUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.util.Mth; // 引入 Mth 用于插值计算
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSpecialEffects;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
+import net.minecraftforge.common.world.ModifiableBiomeInfo;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static indi.yunherry.weather.Weather.MOD_ID;
 import static indi.yunherry.weather.WorldContext.windDirection;
 
+@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 @Renderer(isConditionalRendering = true, isEnableRandomTick = true)
 public class WindRenderer extends ParticleRenderer {
     private static final Logger log = LoggerFactory.getLogger(RendererFactory.class);
@@ -61,7 +77,7 @@ public class WindRenderer extends ParticleRenderer {
             log.info("Wind direction changed from {} to {}. Starting transition.", this.lastWindDirection, windDirection);
             // 更新最后记录的风向
             this.lastWindDirection = windDirection;
-            SoundUtils.playWindInDirection(windDirection, 20, 40f, 1.0f);
+//            SoundUtils.playWindInDirection(windDirection, 20, 40f, 1.0f);
         }
 
         // 3. 如果正在播放动画，则更新动画进度
@@ -130,4 +146,5 @@ public class WindRenderer extends ParticleRenderer {
     public boolean isRender() {
         return false;
     }
+
 }

@@ -1,0 +1,9 @@
+{
+  "type": "weather:custom_biome_sounds",
+  "biomes": [
+    "minecraft:plains",
+    "minecraft:desert",
+    "minecraft:snowy_plains"
+  ],
+  "wind_sound": "weather:wind"
+}

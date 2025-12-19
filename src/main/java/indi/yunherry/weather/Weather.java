@@ -1,22 +1,18 @@
 package indi.yunherry.weather;
 
-import com.mojang.logging.LogUtils;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import indi.yunherry.weather.annotation.FrameApplication;
+import indi.yunherry.weather.biome.ModBiomeModifiers;
 import indi.yunherry.weather.factory.factory.Factory;
 import indi.yunherry.weather.hook.ConfigHandler;
-import indi.yunherry.weather.loader.BiomeFogDistanceLoader;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.FogRenderer;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.world.level.material.FogType;
+import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.client.event.ViewportEvent;
+import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
@@ -29,10 +25,6 @@ import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static indi.yunherry.weather.factory.factory.ParticleFactory.PARTICLES;
 
@@ -45,8 +37,9 @@ import static indi.yunherry.weather.factory.factory.ParticleFactory.PARTICLES;
 public class Weather {
     public static final String MOD_ID = "weather";
     private static ArtifactVersion version;
+
     public Weather() {
-        if (isDebugLevel())WorldContext.isDebugMode = true;
+        if (isDebugLevel()) WorldContext.isDebugMode = true;
         Factory.initFactory();
         version = ModLoadingContext.get().getActiveContainer().getModInfo().getVersion();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -55,6 +48,7 @@ public class Weather {
         modEventBus.addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(WorldContext.class);
+        ModBiomeModifiers.register(modEventBus);
         WorldContext.mainClass = Weather.class;
 //        ClassLoader modClassLoader = Weather.class.getClassLoader();
         //配置文件注册
@@ -93,6 +87,7 @@ public class Weather {
                 Configurator.setLevel("org.valkyrienskies.core.impl.shadow.Ej", org.apache.logging.log4j.Level.OFF);
             }
         }
+
     }
 
 }

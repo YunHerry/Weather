@@ -20,13 +20,12 @@ public abstract class MixinMagmaBlock extends Block {
         super(p_49795_);
     }
 
-    @Override
-    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        super.animateTick(state, level, pos, random);
-        generateMagmaWaterParticles(state, level, pos, random);
-    }
+//    @Override
+//    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+//        super.animateTick(state, level, pos, random);
+//        generateMagmaWaterParticles(state, level, pos, random);
+//    }
 
-    // 添加随机 tick 方法
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         super.randomTick(state, level, pos, random);

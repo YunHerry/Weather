@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import javax.annotation.Nullable;
@@ -38,17 +39,17 @@ public class MixinLevelRendererByClouds {
         return instance.getCloudColor(f7);
     }
 
-    @ModifyArg(
-            method = "buildClouds",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;color(FFFF)Lcom/mojang/blaze3d/vertex/VertexConsumer;"
-            ),
-            index = 3 // 0是R, 1是G, 2是B, 3是Alpha
-    )
-    private float modifyCloudAlpha(float originalAlpha) {
-        float multiplier = 0.5F;
-        return originalAlpha * multiplier;
-    }
+//    @ModifyArg(
+//            method = "buildClouds",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;color(FFFF)Lcom/mojang/blaze3d/vertex/VertexConsumer;"
+//            ),
+//            index = 3
+//    )
+//    private float modifyCloudAlpha(float originalAlpha) {
+//        float multiplier = 0.5F;
+//        return originalAlpha * multiplier;
+//    }
 
 }

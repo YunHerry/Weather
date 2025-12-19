@@ -12,6 +12,8 @@
     "MixinLevelRendererByWeather",
     "MixinMagmaBlock",
     "MixinSeagrass",
+    "ModifiableBiomeAccessor",
+    "ModifiableBiomeInfoBiomeInfoAccessor",
     "create.MixinAbstractContraptionEntity",
     "create.MixinAbstractContraptionEntity_NoParticleCollision",
     "create.MixinContraption"
@@ -26,7 +28,6 @@
     "MixinLevelRendererByClouds",
     "MixinParticleByVS",
     "MixinWaterDropParticle",
-    ,
     "create.MixinParticle"
   ],
   "injectors": {
