@@ -30,19 +30,13 @@ public abstract class MixinFogRenderer {
 
     @Unique
     private static Vec3 weather$currentFogColor;
-    /**
-     * @author
-     * @reason
-     */
-// 我们不再使用 @Overwrite，而是使用 @Inject
-    // 注入点选择在 RenderSystem.setShaderFogStart 被调用之前
-    // 这样我们可以在雾气应用到渲染系统之前，最后一次修改它
+
     @Inject(
             method = "setupFog",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShaderFogStart(F)V",
-                    shift = At.Shift.BEFORE // 在调用前插入
+                    shift = At.Shift.BEFORE
             )
     )
     private static void modifyFogDistance(
@@ -54,8 +48,10 @@ public abstract class MixinFogRenderer {
             CallbackInfo ci,
             @Local(argsOnly = false) FogRenderer.FogData fogData
     ) {
-        if (fogMode == FogRenderer.FogMode.FOG_TERRAIN) {
-            BiomeFogDistanceLoader.FogState targetFog = BiomeFogDistanceLoader.modifyBiomeFog(fogData.start, fogData.end);
+        FogType fogType = camera.getFluidInCamera();
+        if (fogMode == FogRenderer.FogMode.FOG_TERRAIN && fogType == FogType.NONE) {
+            BiomeFogDistanceLoader.FogState targetFog =
+                    BiomeFogDistanceLoader.modifyBiomeFog(fogData.start, fogData.end);
 
             if (targetFog != null) {
                 fogData.start = targetFog.start();
@@ -71,33 +67,50 @@ public abstract class MixinFogRenderer {
                     target = "Lnet/minecraft/util/CubicSampler;gaussianSampleVec3(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/util/CubicSampler$Vec3Fetcher;)Lnet/minecraft/world/phys/Vec3;"
             )
     )
-    private static Vec3 weather$modifyFogColor(Vec3 center, CubicSampler.Vec3Fetcher fetcher,
-                                               Operation<Vec3> original,
-                                               @Local(argsOnly = true) Camera camera,
-                                               @Local(argsOnly = true) ClientLevel level,
-                                               @Local(argsOnly = true) int renderDistanceChunks,
-                                               @Local(ordinal = 6) float lightLevel) {
-
+    private static Vec3 weather$modifyFogColor(
+            Vec3 center,
+            CubicSampler.Vec3Fetcher fetcher,
+            Operation<Vec3> original,
+            @Local(argsOnly = true) Camera camera,
+            @Local(argsOnly = true) ClientLevel level,
+            @Local(argsOnly = true) int renderDistanceChunks,
+            @Local(ordinal = 6) float lightLevel
+    ) {
         Vec3 camPos = GlobalContext.camPos.getCenter();
         FogType fogtype = camera.getFluidInCamera();
 
         Vec3 targetColor = null;
 
-        ResourceLocation biomeRL = ColorMapUtils.getAccurateBiomeID(level, BlockPos.containing(camPos));
+        ResourceLocation biomeRL = ColorMapUtils.getAccurateBiomeID(
+                level,
+                BlockPos.containing(camPos)
+        );
 
         if (fogtype == FogType.WATER) {
-            BiomeWaterFogColorLoader loader = LoaderManager.getLoader(BiomeWaterFogColorLoader.BIOME_WATER_FOG_COLOR_LOADER, BiomeWaterFogColorLoader.class);
+            BiomeWaterFogColorLoader loader = LoaderManager.getLoader(
+                    BiomeWaterFogColorLoader.BIOME_WATER_FOG_COLOR_LOADER,
+                    BiomeWaterFogColorLoader.class
+            );
+
             if (loader != null) {
                 int colorInt = loader.getColorMapByString(biomeRL.toString());
                 Vector4f rgba = ColorMapUtils.int2Vector4fColor(colorInt);
                 targetColor = new Vec3(rgba.x, rgba.y, rgba.z);
             }
+
+        } else if (fogtype == FogType.LAVA) {
+            targetColor = original.call(center, fetcher);
+
         } else {
-            BiomeFogColorLoader loader = LoaderManager.getLoader(BiomeFogColorLoader.BIOME_FOG_COLOR_LOADER, BiomeFogColorLoader.class);
+            BiomeFogColorLoader loader = LoaderManager.getLoader(
+                    BiomeFogColorLoader.BIOME_FOG_COLOR_LOADER,
+                    BiomeFogColorLoader.class
+            );
+
             if (loader != null) {
                 LoaderConfig loaderConfig = LoaderConfig.builder()
-                        .rain(level.getRainLevel(Minecraft.getInstance().getFrameTime())) // 使用插值雨量
-                        .skyLight((int) lightLevel) // 使用传入的光照等级
+                        .rain(level.getRainLevel(Minecraft.getInstance().getFrameTime()))
+                        .skyLight((int) lightLevel)
                         .camPos(camPos)
                         .renderDistance(renderDistanceChunks)
                         .build();
@@ -116,11 +129,10 @@ public abstract class MixinFogRenderer {
         if (weather$currentFogColor == null) {
             weather$currentFogColor = targetColor;
         } else {
-            double factor = 0.02;
+            double factor = (fogtype == FogType.WATER || fogtype == FogType.LAVA) ? 0.1 : 0.02;
             weather$currentFogColor = weather$currentFogColor.lerp(targetColor, factor);
         }
 
         return weather$currentFogColor;
     }
-
 }

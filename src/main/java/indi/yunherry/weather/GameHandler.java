@@ -10,5 +10,6 @@ public class GameHandler {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         RayThreadPool.init();
+        CustomBlockEntityThreadPool.init();
     }
 }
