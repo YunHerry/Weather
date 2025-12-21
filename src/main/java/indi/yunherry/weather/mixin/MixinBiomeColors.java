@@ -32,16 +32,10 @@ public class MixinBiomeColors {
             BiomeWaterColorLoader loader = LoaderManager.getLoader(BiomeWaterColorLoader.BIOME_WATER_COLOR_LOADER, BiomeWaterColorLoader.class);
 
             if (loader != null) {
-//                // 获取混合后的颜色而不是单点颜色
-//                int blendedColor = getBlendedWaterColor(GlobalContext.level, pos, loader);
-//                if (blendedColor != -1) {
-//                    cir.setReturnValue(blendedColor);
-//                }
                 cir.setReturnValue(ColorUtils.vec3Color2Int(CubicSampler.gaussianSampleVec3(pos.getCenter(), (x, y, z) -> {
                     BlockPos sample = BlockPos.containing(x, y, z);
                     ResourceLocation biomeRL = ColorMapUtils.getAccurateBiomeID(GlobalContext.level, sample);
 
-//                    BiomeWaterColorLoader loader = LoaderManager.getLoader(BiomeWaterColorLoader.BIOME_WATER_COLOR_LOADER, BiomeWaterColorLoader.class);
                     Vector4f rgba = ColorMapUtils.int2Vector4fColor(loader.getColorMapByString(biomeRL.toString()));
                     return new Vec3(rgba.x, rgba.y, rgba.z);
                 })));

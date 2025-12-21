@@ -21,8 +21,7 @@ public record BiomeColorConfigData(
      */
     public record BiomeColorData(
             @SerializedName("startColor") String startColor,
-            @SerializedName("midColor") String midColor,
-            @SerializedName("endColor") String endColor
+            @SerializedName("midColor") String midColor
     ) {
 
         // 便捷方法：将颜色字符串转换为整数
@@ -32,10 +31,6 @@ public record BiomeColorConfigData(
 
         public int getMidColorAsInt() {
             return parseColorString(midColor);
-        }
-
-        public int getEndColorAsInt() {
-            return parseColorString(endColor);
         }
 
         // 解析颜色字符串 (#RRGGBB) 为整数

@@ -39,7 +39,6 @@ public class ColorMapUtils {
      *
      * @param startColor 起始颜色 (hex格式，如 "#1e1f22")
      * @param midColor   中间颜色 (hex格式，如 "#e29649")
-     * @param endColor   结束颜色 (hex格式，如 "#1e1f22")
      * @param step       颜色步数
      * @return 颜色映射数组，包含step个颜色值
      */
@@ -100,7 +99,7 @@ public class ColorMapUtils {
      * 从 ColorConfigData.BiomeColorData 生成颜色映射
      */
     public static int[] generateColorMap(BiomeColorConfigData.BiomeColorData biomeColorData, int step) {
-        return generateColorMap(biomeColorData.startColor(), biomeColorData.midColor(), biomeColorData.endColor(), step);
+        return generateColorMap(biomeColorData.startColor(), biomeColorData.midColor(), biomeColorData.startColor(), step);
     }
 
     /**
