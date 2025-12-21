@@ -11,6 +11,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.jline.utils.Log;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -23,7 +24,31 @@ public class CustomBlockEntityThreadPool {
             0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(200),
             new ThreadPoolExecutor.DiscardOldestPolicy()
-    );
+    ) {
+        @Override
+        protected void afterExecute(Runnable r, Throwable t) {
+            super.afterExecute(r, t);
+
+            // 如果 t 为空，说明没有直接抛出异常，但如果是 FutureTask，异常可能藏在里面
+            if (t == null && r instanceof Future<?>) {
+                try {
+                    Object result = ((Future<?>) r).get();
+                } catch (CancellationException ce) {
+                    t = ce;
+                } catch (ExecutionException ee) {
+                    t = ee.getCause(); // 获取真正的异常
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt(); // 恢复中断状态
+                }
+            }
+
+            // 如果捕获到了异常，打印到 Minecraft 日志中
+            if (t != null) {
+                Log.error("线程池异步任务发生严重错误!", t);
+                // 这里的 t 就是你要捕获的错误，包含了完整的堆栈信息
+            }
+        }
+    };
 
     public static void init() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -36,7 +61,7 @@ public class CustomBlockEntityThreadPool {
     private static final HashMap<ICustomTick, Queue<TickBlockInfo>> tickingBlockEntity = new HashMap<ICustomTick, Queue<TickBlockInfo>>();
 
     public static void customTicks() {
-
+        ClientLevel level = GlobalContext.level;
         for (Map.Entry<ICustomTick, Queue<TickBlockInfo>> entry : tickingBlockEntity.entrySet()) {
             ICustomTick customTick = entry.getKey();
             Iterator<TickBlockInfo> iterator = tickingBlockEntity.computeIfAbsent(customTick, k -> new ConcurrentLinkedQueue<>()).iterator();
@@ -47,7 +72,7 @@ public class CustomBlockEntityThreadPool {
                     iterator.remove();
                     return;
                 }
-                customTick.weather$tick(tickingBlock);
+                customTick.weather$tick(level,tickingBlock);
             }
         }
     }
@@ -85,6 +110,10 @@ public class CustomBlockEntityThreadPool {
                             BlockState state = chunk.getBlockState(pos);
                             if (state.is(Blocks.BUBBLE_COLUMN)) {
                                 if (state.getBlock() instanceof ICustomTick customTick && level.getBlockState(pos.above()).isAir()) {
+                                    submitTicker(customTick, pos.immutable(), state);
+                                }
+                            } else if (state.is(Blocks.TALL_SEAGRASS)) {
+                                if (state.getBlock() instanceof ICustomTick customTick) {
                                     submitTicker(customTick, pos.immutable(), state);
                                 }
                             }

@@ -1,7 +1,11 @@
 package indi.yunherry.weather.mixin;
 
+import indi.yunherry.weather.TickBlockInfo;
 import indi.yunherry.weather.WorldContext;
+import indi.yunherry.weather.duck.ICustomTick;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DoublePlantBlock;
@@ -14,18 +18,25 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Mixin(TallSeagrassBlock.class)
-public abstract class MixinSeagrass extends DoublePlantBlock implements LiquidBlockContainer {
+public abstract class MixinSeagrass extends DoublePlantBlock implements LiquidBlockContainer, ICustomTick {
 
     public MixinSeagrass(Properties p_154745_) {
         super(p_154745_);
     }
+
     @Unique
     @Override
-    public void animateTick(BlockState p_220827_, Level p_220828_, BlockPos p_220829_, RandomSource p_220830_) {
-        super.animateTick(p_220827_, p_220828_, p_220829_, p_220830_);
-        if (p_220830_.nextFloat()<0.05) {
-            p_220828_.addParticle(WorldContext.particleBeans.get("ripple").get(), p_220829_.getX()+0.5+ ThreadLocalRandom.current().nextFloat(), p_220829_.getY() + 1, p_220829_.getZ()+0.5+ ThreadLocalRandom.current().nextFloat(), 0.0, 0.0, 0.0);
-
+    public void weather$tick(ClientLevel level, TickBlockInfo info) {
+        ThreadLocalRandom randomSource = ThreadLocalRandom.current();
+        BlockPos pos = info.pos();
+        if (level.getBlockState(pos.above()).isAir()) {
+            if (randomSource.nextFloat() < 0.01) {
+                level.addAlwaysVisibleParticle(WorldContext.particleBeans.get("ripple").get(), pos.getX() + 0.5 + ThreadLocalRandom.current().nextFloat(), pos.getY() + 1, pos.getZ() + 0.5 + ThreadLocalRandom.current().nextFloat(), 0.0, 0.0, 0.0);
+            }
+        } else {
+            if (randomSource.nextFloat() < 0.001) {
+                level.addAlwaysVisibleParticle(ParticleTypes.BUBBLE_COLUMN_UP, pos.getX() + 0.5 + ThreadLocalRandom.current().nextFloat(), pos.getY() + 1, pos.getZ() + 0.5 + ThreadLocalRandom.current().nextFloat(), 0.0, 0.0, 0.0);
+            }
         }
 
     }

@@ -138,18 +138,11 @@ public abstract class MixinFogRenderer {
             );
 
             if (loader != null) {
-                // 如果是黑色测试，可以直接 new Vec3(0,0,0)
                 int colorInt = loader.getColorMapByString(biomeRL.toString());
                 Vector4f rgba = ColorMapUtils.int2Vector4fColor(colorInt);
                 targetColor = new Vec3(rgba.x, rgba.y, rgba.z);
             }
-
-            // 如果我们获取到了自定义颜色
             if (targetColor != null) {
-                // 应用平滑 (注意：由于这是 RETURN 注入，我们需要小心处理 currentFogColor 的状态)
-                // 这里为了演示简单，直接复用 static 变量，建议根据实际情况决定是否要和陆地雾共用同一个 lerp 变量
-                // 水下的颜色变化通常比较快，factor 可以设大一点，比如 0.1
-
                 if (weather$currentFogColor == null) {
                     weather$currentFogColor = targetColor;
                 } else {
