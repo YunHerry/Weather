@@ -1,9 +1,6 @@
 package indi.yunherry.weather.event;
 
-import indi.yunherry.weather.AnimationController;
-import indi.yunherry.weather.GlobalContext;
-import indi.yunherry.weather.WindDirectionType;
-import indi.yunherry.weather.WorldContext;
+import indi.yunherry.weather.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -13,11 +10,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderGuiEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -38,7 +38,6 @@ public class DebugEvent {
         GuiGraphics guiGraphics = event.getGuiGraphics();
 
         Component text = Component.literal(String.format("风向: %s", WindDirectionType.getWindDirectionType(WorldContext.windDirection)));
-
         // 计算屏幕位置（物品栏上方居中）
         int screenWidth = event.getWindow().getGuiScaledWidth();
         int yPos = event.getWindow().getGuiScaledHeight() - 42;
@@ -128,7 +127,6 @@ public class DebugEvent {
                 true // 启用阴影
         );
     }
-
     @SubscribeEvent
     public static void onRenderDebugInfo(RenderGuiEvent.Post event) {
         if (!WorldContext.isDebugMode) return;
@@ -146,22 +144,23 @@ public class DebugEvent {
         int yPosStart = 24; // 从第 24 像素行开始绘制，与上方信息分隔
         int lineHeight = 10; // 每行文字的像素高度
         int currentY = yPosStart;
-
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0, 0, 400);
         // 遍历 GlobalContext 中存储的调试值
         for (Map.Entry<String, String> entry : GlobalContext.DEBUG_VALUES.entrySet()) {
             String debugText = entry.getKey() + ": " + entry.getValue();
-
             // 渲染文本
             guiGraphics.drawString(
                     font,
                     debugText,
                     xPos, // 固定左对齐
                     currentY,
-                    0xFFFFFF, // 白色
+                    0xFFFFFFFF, // 白色
                     true // 启用阴影 (true)
             );
 
             currentY += lineHeight;
         }
+        guiGraphics.pose().popPose();
     }
 }

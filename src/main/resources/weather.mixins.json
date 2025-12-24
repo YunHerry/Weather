@@ -7,8 +7,8 @@
   "plugin": "indi.yunherry.weather.plugin.CompatMixinPlugin",
   "mixins": [
     "InvokerEntityShipCollisionUtils",
+    "MixinBlockBehaviour",
     "MixinBubbleColumnBlock",
-    "MixinCampfireBlock",
     "MixinCommands",
     "MixinLevelByTicker",
     "MixinLevelRendererByWeather",

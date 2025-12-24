@@ -3,15 +3,19 @@ package indi.yunherry.weather;
 import indi.yunherry.weather.duck.ICustomTick;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BubbleColumnBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.jline.utils.Log;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -24,31 +28,7 @@ public class CustomBlockEntityThreadPool {
             0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(200),
             new ThreadPoolExecutor.DiscardOldestPolicy()
-    ) {
-        @Override
-        protected void afterExecute(Runnable r, Throwable t) {
-            super.afterExecute(r, t);
-
-            // 如果 t 为空，说明没有直接抛出异常，但如果是 FutureTask，异常可能藏在里面
-            if (t == null && r instanceof Future<?>) {
-                try {
-                    Object result = ((Future<?>) r).get();
-                } catch (CancellationException ce) {
-                    t = ce;
-                } catch (ExecutionException ee) {
-                    t = ee.getCause(); // 获取真正的异常
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt(); // 恢复中断状态
-                }
-            }
-
-            // 如果捕获到了异常，打印到 Minecraft 日志中
-            if (t != null) {
-                Log.error("线程池异步任务发生严重错误!", t);
-                // 这里的 t 就是你要捕获的错误，包含了完整的堆栈信息
-            }
-        }
-    };
+    );
 
     public static void init() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -58,28 +38,45 @@ public class CustomBlockEntityThreadPool {
         }));
     }
 
-    private static final HashMap<ICustomTick, Queue<TickBlockInfo>> tickingBlockEntity = new HashMap<ICustomTick, Queue<TickBlockInfo>>();
+    private static final Map<ChunkPos, Map<ICustomTick, Queue<TickBlockInfo>>> tickingBlockEntity = new ConcurrentHashMap<>();
 
     public static void customTicks() {
         ClientLevel level = GlobalContext.level;
-        for (Map.Entry<ICustomTick, Queue<TickBlockInfo>> entry : tickingBlockEntity.entrySet()) {
-            ICustomTick customTick = entry.getKey();
-            Iterator<TickBlockInfo> iterator = tickingBlockEntity.computeIfAbsent(customTick, k -> new ConcurrentLinkedQueue<>()).iterator();
+        if (level == null) return;
 
-            while (iterator.hasNext()) {
-                TickBlockInfo tickingBlock = iterator.next();
-                if (!GlobalContext.level.isLoaded(tickingBlock.pos())) {
-                    iterator.remove();
-                    return;
+        tickingBlockEntity.forEach((chunkPos, tickerMap) -> {
+            if (!level.getChunkSource().hasChunk(chunkPos.x, chunkPos.z)) return;
+
+            tickerMap.forEach((customTick, queue) -> {
+                if (queue.isEmpty()) return;
+                for (TickBlockInfo tickingBlock : queue) {
+                    customTick.weather$tick(level, tickingBlock);
                 }
-                customTick.weather$tick(level,tickingBlock);
-            }
-        }
+            });
+        });
+    }
+
+    public static void submitTicker(ICustomTick tickerType, ChunkPos chunkPos, BlockPos pos, BlockState state) {
+        Map<ICustomTick, Queue<TickBlockInfo>> tickBlockInfoChunkList = tickingBlockEntity.computeIfAbsent(chunkPos, k -> new HashMap<>());
+        Queue<TickBlockInfo> tickBlockInfoList = tickBlockInfoChunkList.computeIfAbsent(tickerType, k -> new ConcurrentLinkedQueue<>());
+        tickBlockInfoList.add(new TickBlockInfo(pos, state));
     }
 
     public static void submitTicker(ICustomTick tickerType, BlockPos pos, BlockState state) {
-        Queue<TickBlockInfo> tickBlockInfoList = tickingBlockEntity.computeIfAbsent(tickerType, k -> new ConcurrentLinkedQueue<>());
+        ChunkPos chunkPos = new ChunkPos(pos);
+        Map<ICustomTick, Queue<TickBlockInfo>> tickBlockInfoChunkList =
+                tickingBlockEntity.computeIfAbsent(chunkPos, k -> new ConcurrentHashMap<>());
+        Queue<TickBlockInfo> tickBlockInfoList =
+                tickBlockInfoChunkList.computeIfAbsent(tickerType, k -> new ConcurrentLinkedQueue<>());
         tickBlockInfoList.add(new TickBlockInfo(pos, state));
+    }
+
+    public static void removeTickerAt(BlockPos pos) {
+        ChunkPos chunkPos = new ChunkPos(pos);
+        Map<ICustomTick, Queue<TickBlockInfo>> chunkTickers = tickingBlockEntity.get(chunkPos);
+        if (chunkTickers != null) {
+            chunkTickers.values().forEach(queue -> queue.removeIf(info -> info.pos().equals(pos)));
+        }
     }
 
     public static void shutdown() {
@@ -94,33 +91,48 @@ public class CustomBlockEntityThreadPool {
     @SubscribeEvent
     public static void onChunkLoad(ChunkEvent.Load event) {
         if (!(event.getLevel() instanceof ClientLevel level)) return;
-        if (!event.isNewChunk()) {
-            pool.submit(() -> {
-                LevelChunk chunk = (LevelChunk) event.getChunk();
-                BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        pool.submit(() -> {
+            LevelChunk chunk = (LevelChunk) event.getChunk();
+            ChunkPos chunkPos = chunk.getPos();
+            LevelChunkSection[] sections = chunk.getSections();
+            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+            int minBuildHeight = level.getMinBuildHeight();
+            int chunkMinX = chunk.getPos().getMinBlockX();
+            int chunkMinZ = chunk.getPos().getMinBlockZ();
+            for (int i = 0; i < sections.length; i++) {
+                LevelChunkSection section = sections[i];
+
+                if (section.hasOnlyAir()) continue;
+                int secMinY = minBuildHeight + (i * 16);
+
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
-                        for (int y = level.getMinBuildHeight(); y < level.getMaxBuildHeight(); y++) {
-                            pos.set(
-                                    chunk.getPos().getMinBlockX() + x,
-                                    y,
-                                    chunk.getPos().getMinBlockZ() + z
-                            );
-
-                            BlockState state = chunk.getBlockState(pos);
-                            if (state.is(Blocks.BUBBLE_COLUMN)) {
-                                if (state.getBlock() instanceof ICustomTick customTick && level.getBlockState(pos.above()).isAir()) {
-                                    submitTicker(customTick, pos.immutable(), state);
-                                }
-                            } else if (state.is(Blocks.TALL_SEAGRASS)) {
-                                if (state.getBlock() instanceof ICustomTick customTick) {
-                                    submitTicker(customTick, pos.immutable(), state);
+                        for (int y = 0; y < 16; y++) {
+                            BlockState state = section.getBlockState(x, y, z);
+                            if (state.isAir()) continue;
+                            if (state.is(Blocks.BUBBLE_COLUMN) || state.is(Blocks.TALL_SEAGRASS)) {
+                                pos.set(chunkMinX + x, secMinY + y, chunkMinZ + z);
+                                if (state.is(Blocks.BUBBLE_COLUMN)) {
+                                    if (state.getBlock() instanceof ICustomTick customTick && level.getBlockState(pos.above()).isAir()) {
+                                        submitTicker(customTick, chunkPos, pos.immutable(), state);
+                                    }
+                                } else if (state.is(Blocks.TALL_SEAGRASS)) {
+                                    if (state.getBlock() instanceof ICustomTick customTick) {
+                                        submitTicker(customTick, chunkPos, pos.immutable(), state);
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            });
+            }
+        });
+    }
+
+    @SubscribeEvent
+    public static void onChunkUnload(ChunkEvent.Unload event) {
+        if (event.getLevel().isClientSide()) {
+            tickingBlockEntity.remove(event.getChunk().getPos());
         }
     }
 }

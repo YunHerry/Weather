@@ -44,6 +44,5 @@ public abstract class MixinMagmaBlock extends Block {
     public void neighborChanged(BlockState state, Level level, BlockPos pos,
                                 net.minecraft.world.level.block.Block block,
                                 BlockPos fromPos, boolean isMoving) {
-        //更新的时候检测
     }
 }

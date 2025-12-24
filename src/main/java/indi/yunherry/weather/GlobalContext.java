@@ -9,12 +9,13 @@ import net.minecraft.world.level.LightLayer;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class GlobalContext {
     public static BlockPos camPos;
     public static ClientLevel level;
     public static Minecraft mc;
-    public static final Map<String, String> DEBUG_VALUES = new LinkedHashMap<>();
+    public static final Map<String, String> DEBUG_VALUES = new ConcurrentHashMap<>();
     private static int renderDistance;
     public static float frameTime;
     private static float rain;

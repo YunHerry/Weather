@@ -5,6 +5,7 @@ import indi.yunherry.weather.GlobalContext;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.utils.ColorMapUtils;
 import indi.yunherry.weather.utils.ColorUtils;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4f;
 import org.slf4j.Logger;
@@ -120,6 +121,8 @@ public class BiomeSkyColorLoader extends AbstractLoader<BiomeColorConfigData.Bio
         GlobalContext.DEBUG_VALUES.put("Sky: Time Base Index", String.format("%.2f", timeBaseIndex));
         GlobalContext.DEBUG_VALUES.put("Sky: Env Offset", String.format("%.2f", offset));
         GlobalContext.DEBUG_VALUES.put("Sky: Final Y Index (Result)", String.format("%.2f / %d", result, N - 1));
+        BlockPos pos = GlobalContext.camPos;
+        GlobalContext.DEBUG_VALUES.put("local: ", String.format("%d / %d /%d", pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15));
 
         return result;
     }

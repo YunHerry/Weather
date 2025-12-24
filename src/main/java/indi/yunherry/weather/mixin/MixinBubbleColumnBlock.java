@@ -29,22 +29,10 @@ public abstract class MixinBubbleColumnBlock extends Block implements ICustomTic
 
     @Unique
     @Override
-    public void onPlace(BlockState p_60566_, Level p_60567_, BlockPos p_60568_, BlockState p_60569_, boolean p_60570_) {
-        super.onPlace(p_60566_, p_60567_, p_60568_, p_60569_, p_60570_);
-    }
-
-    @Unique
-    @Override
-    public void onRemove(BlockState p_60515_, Level p_60516_, BlockPos p_60517_, BlockState p_60518_, boolean p_60519_) {
-        super.onRemove(p_60515_, p_60516_, p_60517_, p_60518_, p_60519_);
-    }
-
-    @Unique
-    @Override
     public void weather$tick(ClientLevel level, TickBlockInfo info) {
         if (!info.state().getValue(BubbleColumnBlock.DRAG_DOWN)) return;
         ThreadLocalRandom randomSource = ThreadLocalRandom.current();
-        if (randomSource.nextInt(5) == 0) {
+        if (randomSource.nextInt(10) == 0) {
 
             for(int i = 0; i < randomSource.nextInt(1) + 1; ++i) {
                 generateMagmaWaterParticles(info.state(), level,info.pos(),randomSource);
