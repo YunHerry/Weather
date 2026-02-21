@@ -32,7 +32,7 @@ public class MixinParticle {
 	@Shadow
 	public double z;
 
-	@WrapOperation(method = "move", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;collideBoundingBox(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Lnet/minecraft/world/level/Level;Ljava/util/List;)Lnet/minecraft/world/phys/Vec3;"))
+	@WrapOperation(method = "move(DDD)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;collideBoundingBox(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Lnet/minecraft/world/level/Level;Ljava/util/List;)Lnet/minecraft/world/phys/Vec3;"))
 	private Vec3 collideBoundingBox(Entity entity, Vec3 motion, AABB aABB, Level level, List<VoxelShape> list, Operation<Vec3> original) {
 		Vec3 mov = CreateUtils.collideMotionWithContraptions((ClientLevel) level, motion, aABB);
 		return original.call(entity, mov == null ? motion : mov, aABB, level, list);

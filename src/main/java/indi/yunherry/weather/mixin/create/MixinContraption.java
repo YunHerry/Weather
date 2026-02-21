@@ -22,97 +22,88 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+
 /**
- *
- *  Based on CreateUtil from AsyncParticles by qu-an
- *  <a href="https://github.com/Harveykang/AsyncParticles">github</a>
- * */
+ * Based on CreateUtil from AsyncParticles by qu-an
+ * <a href="https://github.com/Harveykang/AsyncParticles">github</a>
+ */
 @Mixin(Contraption.class)
 public class MixinContraption implements ContraptionAddon {
-	@Shadow(remap = false)
-	protected Map<BlockPos, StructureTemplate.StructureBlockInfo> blocks;
-	@Shadow(remap = false)
-	protected ContraptionWorld world;
-	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-	@Shadow(remap = false) public Optional<List<AABB>> simplifiedEntityColliders;
+    @Shadow(remap = false)
+    protected Map<BlockPos, StructureTemplate.StructureBlockInfo> blocks;
+    @Shadow(remap = false)
+    protected ContraptionWorld collisionLevel;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    @Shadow(remap = false)
+    public Optional<List<AABB>> simplifiedEntityColliders;
 
-	@Unique
-	private volatile List<AABB> weather$aabbs;
-	@Unique
-	private final Object weather$lock = new Object();
+    @Unique
+    private volatile List<AABB> weather$aabbs;
+    @Unique
+    private final Object weather$lock = new Object();
 
-	@Unique
-	private static final VoxelShape EMPTY_SHAPE = net.minecraft.world.phys.shapes.Shapes.empty();
+    @Unique
+    private static final VoxelShape EMPTY_SHAPE = net.minecraft.world.phys.shapes.Shapes.empty();
 
-	@Dynamic
-	@WrapOperation(method = {
-			"lambda$gatherBBsOffThread$17()Ljava/util/List;",
-			"lambda$gatherBBsOffThread$25()Ljava/util/List;",
-			"lambda$gatherBBsOffThread$26()Ljava/util/List;"
-	}, at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/world/phys/shapes/VoxelShape;toAabbs()Ljava/util/List;"))
-	private List<AABB> optimizeVoxelShape(VoxelShape instance, Operation<List<AABB>> original) {
-		return original.call(instance);
-	}
 
-	@WrapOperation(method = "gatherBBsOffThread", remap = false, at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAccept(Ljava/util/function/Consumer;)Ljava/util/concurrent/CompletableFuture;"))
-	private CompletableFuture<Void> gatherBBsOffThread(CompletableFuture<?> instance, Consumer<?> action, Operation<CompletableFuture<Void>> original) {
-		return original.call(instance, action).thenRun(() -> {
-			weather$aabbs = null;
-		});
-	}
+    @WrapOperation(method = "gatherBBsOffThread", remap = false, at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAccept(Ljava/util/function/Consumer;)Ljava/util/concurrent/CompletableFuture;"))
+    private CompletableFuture<Void> gatherBBsOffThread(CompletableFuture<?> instance, Consumer<?> action, Operation<CompletableFuture<Void>> original) {
+        return original.call(instance, action).thenRun(() -> {
+            weather$aabbs = null;
+        });
+    }
 
-	@Override
-	public List<AABB> weather$getAabbs() {
-		if (simplifiedEntityColliders.isPresent()) {
-			return simplifiedEntityColliders.get();
-		}
+    @Override
+    public List<AABB> weather$getAabbs() {
+        if (simplifiedEntityColliders.isPresent()) {
+            return simplifiedEntityColliders.get();
+        }
 
-		List<AABB> result = weather$aabbs;
+        List<AABB> result = weather$aabbs;
 
-		if (result != null) {
-			return result;
-		}
+        if (result != null) {
+            return result;
+        }
 
-		synchronized (weather$lock) {
-			result = weather$aabbs;
-			if (result != null) {
-				return result;
-			}
+        synchronized (weather$lock) {
+            result = weather$aabbs;
+            if (result != null) {
+                return result;
+            }
 
-			int estimatedSize = Math.max(16, blocks.size() / 4);
-			List<AABB> aabbs = new ArrayList<>(estimatedSize);
+            int estimatedSize = Math.max(16, blocks.size() / 4);
+            List<AABB> aabbs = new ArrayList<>(estimatedSize);
 
-			ContraptionWorld cachedWorld = this.world;
+            ContraptionWorld cachedWorld = this.collisionLevel;
 
-			for (Map.Entry<BlockPos, StructureTemplate.StructureBlockInfo> entry : blocks.entrySet()) {
-				StructureTemplate.StructureBlockInfo info = entry.getValue();
-				BlockPos localPos = entry.getKey();
+            for (Map.Entry<BlockPos, StructureTemplate.StructureBlockInfo> entry : blocks.entrySet()) {
+                StructureTemplate.StructureBlockInfo info = entry.getValue();
+                BlockPos localPos = entry.getKey();
 
-				net.minecraft.world.level.block.state.BlockState blockState = info.state();
+                net.minecraft.world.level.block.state.BlockState blockState = info.state();
 
-				if (blockState.isAir()) {
-					continue;
-				}
+                if (blockState.isAir()) {
+                    continue;
+                }
 
-				VoxelShape collisionShape = blockState.getCollisionShape(cachedWorld, localPos, CollisionContext.empty());
-				if (collisionShape != EMPTY_SHAPE && !collisionShape.isEmpty()) {
-					int x = localPos.getX();
-					int y = localPos.getY();
-					int z = localPos.getZ();
+                VoxelShape collisionShape = blockState.getCollisionShape(cachedWorld, localPos, CollisionContext.empty());
+                if (collisionShape != EMPTY_SHAPE && !collisionShape.isEmpty()) {
+                    int x = localPos.getX();
+                    int y = localPos.getY();
+                    int z = localPos.getZ();
 
-					VoxelShape movedShape = collisionShape.move(x, y, z);
-					List<AABB> shapeAABBs = movedShape.toAabbs();
-					if (!shapeAABBs.isEmpty()) {
-						aabbs.addAll(shapeAABBs);
-					}
-				}
-			}
-			if (aabbs.size() < aabbs.size() * 0.75) {
-				aabbs = new ArrayList<>(aabbs);
-			}
+                    VoxelShape movedShape = collisionShape.move(x, y, z);
+                    List<AABB> shapeAABBs = movedShape.toAabbs();
+                    if (!shapeAABBs.isEmpty()) {
+                        aabbs.addAll(shapeAABBs);
+                    }
+                }
+            }
+            if (aabbs.size() < aabbs.size() * 0.75) {
+                aabbs = new ArrayList<>(aabbs);
+            }
 
-			return weather$aabbs = aabbs;
-		}
-	}
+            return weather$aabbs = aabbs;
+        }
+    }
 }

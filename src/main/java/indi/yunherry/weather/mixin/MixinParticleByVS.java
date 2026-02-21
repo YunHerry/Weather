@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.valkyrienskies.core.apigame.collision.ConvexPolygonc;
+import org.valkyrienskies.core.internal.collision.VsiConvexPolygonc;
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod;
 import org.valkyrienskies.mod.common.util.EntityShipCollisionUtils;
 import org.valkyrienskies.mod.common.util.IEntityDraggingInformationProvider;
@@ -59,10 +59,10 @@ public abstract class MixinParticleByVS {
         Vec3 inflatedMove = movement.add(0.0, Math.max(step - inflation, 0.0), 0.0);
         AABB inflatedBox = box.inflate(inflation);
 
-        List<ConvexPolygonc> polys = ((EntityShipCollisionUtilsInvoker) (Object) EntityShipCollisionUtils.INSTANCE).getShipPolygonsCollidingWithEntity$weather(entity, inflatedMove, inflatedBox, (ClientLevel) level);
+        List<VsiConvexPolygonc> polys = ((EntityShipCollisionUtilsInvoker) (Object) EntityShipCollisionUtils.INSTANCE).getShipPolygonsCollidingWithEntity$weather(entity, inflatedMove, inflatedBox, (ClientLevel) level);
         Vec3 finalMove = movement;
         if (!polys.isEmpty()) {
-            Pair<Vector3dc, Long> result = ValkyrienSkiesMod.vsCore.getEntityPolygonCollider().adjustEntityMovementForPolygonCollisions(toJOML(inflatedMove), toJOML(inflatedBox), step, polys);
+            Pair<Vector3dc, Long> result = ValkyrienSkiesMod.getVsCore().getEntityPolygonCollider().adjustEntityMovementForPolygonCollisions(toJOML(inflatedMove), toJOML(inflatedBox), step, polys);
             Vector3dc jomlMove = result.getFirst();
             Long shipId = result.getSecond();
 

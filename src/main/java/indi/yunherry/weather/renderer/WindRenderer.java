@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static indi.yunherry.weather.Weather.MOD_ID;
 import static indi.yunherry.weather.WorldContext.windDirection;
 
-@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+//@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 @Renderer(isConditionalRendering = true, isEnableRandomTick = true)
 public class WindRenderer extends ParticleRenderer {
     private static final Logger log = LoggerFactory.getLogger(RendererFactory.class);

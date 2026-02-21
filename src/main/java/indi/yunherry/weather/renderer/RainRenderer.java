@@ -35,8 +35,16 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.joml.Matrix4dc;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.valkyrienskies.core.api.ships.ClientShip;
+import org.valkyrienskies.core.api.ships.LoadedShip;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.List;
 import java.util.Map;
@@ -47,6 +55,7 @@ import static net.minecraft.client.renderer.LevelRenderer.getLightColor;
 //TODO: Refactor
 @Renderer
 public class RainRenderer extends WeatherRenderer {
+    private static final Logger log = LoggerFactory.getLogger(RainRenderer.class);
     private final Map<BlockPos, RainParticle> precipitationQuads = Maps.newHashMap();
     private final Map<Biome.Precipitation, List<RainParticle>> quadsByPrecipitation = Maps.newHashMap();
     private static final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -124,8 +133,11 @@ public class RainRenderer extends WeatherRenderer {
                         for (int y = minY; y < maxY; y++) {
                             if (height > y) continue;
                             BlockPos pos = new BlockPos(x, y, z);
+                            if (!level.getFluidState(pos).isEmpty()) continue;
                             RandomSource blockRandom = RandomSource.create(pos.asLong());
                             if (!this.precipitationQuads.containsKey(pos)) {
+                                float rainLevel = (float) GlobalContext.getLoaderConfig().rain();
+                                int spawnThreshold = (int) Mth.lerp(rainLevel, 1f, 15f); // 小雨1%，大雨15%
                                 if (blockRandom.nextInt(100)<= 1) {
                                     float widthModifier = 2.0F;
 
@@ -141,8 +153,10 @@ public class RainRenderer extends WeatherRenderer {
         }
         AABB box = new AABB(minX, camPos.getY() + 4, minZ, maxX, maxY, maxZ);
         var rain = this.precipitationQuads.entrySet().iterator();
+
         while (rain.hasNext()) {
             var entry = rain.next();
+
             ThreadLocalRandom random = ThreadLocalRandom.current();
             RainParticle quad = entry.getValue();
             //渲染雨滴的开始位置
@@ -154,6 +168,7 @@ public class RainRenderer extends WeatherRenderer {
             }
             quad.tick();
             //粒子生成不正确,侧面
+
             if (random.nextInt(100) < 90) continue;
             if (isRainPrecipitation) {
                 Level levelreader = this.mc.level;
@@ -177,18 +192,19 @@ public class RainRenderer extends WeatherRenderer {
                     Direction hitFace = hitResult.getDirection();
                     final double edgeOffset = 0.2; // 外侧偏移量增大防止Z-fighting
                     final double randomSpread = 0.4; // 表面随机散布范围
+
                     switch (hitFace) {
                         case UP -> {
                             // 顶部表面：在XY平面随机散布，Y轴位于表面上方
                             baseX += (random.nextDouble() - 0.5) * randomSpread;
                             baseZ += (random.nextDouble() - 0.5) * randomSpread;
-                            baseY += edgeOffset; // 确保在方块上方
+                            baseY += edgeOffset + random.nextDouble() * 0.3; // 确保在方块上方
                         }
                         case DOWN -> {
-                            // 底部不生成粒子
+
                             baseX += (random.nextDouble() - 0.5) * randomSpread;
                             baseZ += (random.nextDouble() - 0.5) * randomSpread;
-                            baseY += edgeOffset;
+                            baseY -= 1f + edgeOffset;
                         }
                         case NORTH -> {
                             // 北侧：Z轴负方向偏移，XY平面随机
@@ -211,8 +227,8 @@ public class RainRenderer extends WeatherRenderer {
                             baseZ += random.nextDouble() * randomSpread;
                         }
                     }
-                    //粒子数量不合理
-                    levelreader.addParticle(particleoptions, baseX, baseY + (hitFace == Direction.UP ? 0 : random.nextDouble() * 0.3), baseZ, 0.0, 0.0, 0.0);
+                    Vec3 absoluteV = getAbsoluteVelocity(level, new BlockPos((int)baseX, (int)baseY, (int)baseZ), new Vec3(0, 0.1, 0));
+                    levelreader.addParticle(particleoptions, baseX, baseY, baseZ, absoluteV.x, absoluteV.y, absoluteV.z);
 //                    //声音不太对
                     //TODO: 雨的声音可作海浪
 //                    if (random.nextInt(2) < quad.getRainSoundTime()) {
@@ -232,7 +248,26 @@ public class RainRenderer extends WeatherRenderer {
         }
 
     }
+    public static Vec3 getAbsoluteVelocity(Level level, BlockPos pos, Vec3 worldVelocity) {
+        LoadedShip ship = VSGameUtilsKt.getLoadedShipManagingPos(level, pos.getX() >> 4, pos.getZ() >> 4);
+        if (ship != null) {
+            // 2. 获取【世界到船】的逆向旋转矩阵
+            // 我们需要把“世界坐标系的速度”转换成“船只坐标系的速度”
+            // 这样当 VS 的 Mixin 再次把它从“船”转回“世界”时，两次变换抵消，结果就是绝对方向。
+            Matrix4dc worldToShip = ship.getTransform().getWorldToShipMatrix();
 
+            Vector3d localV = worldToShip.transformDirection(
+                    new Vector3d(worldVelocity.x, worldVelocity.y, worldVelocity.z)
+            );
+
+            // 3. 减去船只本身的物理速度（因为 VS 会在 Mixin 里自动加上船速，我们得先减掉，防止叠加两次）
+            localV.sub(ship.getVelocity().mul(0.05, new Vector3d()));
+
+            return new Vec3(localV.x, localV.y, localV.z);
+        }
+
+        return worldVelocity; // 不在船上，按原样返回
+    }
     @Override
     public void render() {
 

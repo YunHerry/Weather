@@ -1,8 +1,8 @@
 package indi.yunherry.weather.client.particle;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import indi.yunherry.weather.AnimationController;
 import indi.yunherry.weather.GlobalContext;
@@ -10,13 +10,18 @@ import indi.yunherry.weather.RayThreadPool;
 import indi.yunherry.weather.compact.create.CreateRayUtils;
 import indi.yunherry.weather.utils.ShaderUtils;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -30,6 +35,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import static indi.yunherry.weather.Weather.MOD_ID;
+
 //TODO: Refactor
 public class RainParticle {
     public static final float MAX_LENGTH = 32.0F;
@@ -37,7 +44,9 @@ public class RainParticle {
     public static final Map<Biome.Precipitation, ResourceLocation> TEXTURE_BY_PRECIPITATION = Util.make(() -> {
         ImmutableMap.Builder<Biome.Precipitation, ResourceLocation> map = ImmutableMap.builder();
         map.put(Biome.Precipitation.RAIN, new ResourceLocation("textures/environment/rain.png"));
+//        map.put(Biome.Precipitation.RAIN, new ResourceLocation(MOD_ID, "textures/environment/test.png"));
         map.put(Biome.Precipitation.SNOW, new ResourceLocation("textures/environment/snow.png"));
+
         return map.build();
     });
 
@@ -84,31 +93,44 @@ public class RainParticle {
         this.yRot = yRot;
         this.zRot = zRot;
         this.lifeSpan = lifeSpan;
-        this.initialWidth = Math.max(0.1F, initialWidth);// Mth.clamp(initialWidth, 0.1F, MAX_WIDTH);
-//        this.rayLength = (camY > 0 ? position.getY() - camY : position.getY() + Math.abs(camY)) + 10;
-        // 计算反向方向向量
+        float rainLevel = (float) GlobalContext.getLoaderConfig().rain();
+        this.initialWidth = Mth.lerp(rainLevel, 0.6f, 1.6f); // 小雨0.6，大雨1.6
         float yawRadians = -this.yRot;
         float pitchRadians = this.xRot - (float) Math.PI / 2.0F;
         float pitchCos = Mth.cos(pitchRadians);
         this.alpha = ShaderUtils.areShadersRunning() ? 1.0f : 0.5f;
-        Vec3 reverseDir = new Vec3(-Mth.sin(yawRadians) * pitchCos, -Mth.sin(pitchRadians), -Mth.cos(yawRadians) * pitchCos).normalize();  // 单位向量
+        Vec3 reverseDir = new Vec3(-Mth.sin(yawRadians) * pitchCos, -Mth.sin(pitchRadians), -Mth.cos(yawRadians) * pitchCos).normalize();
 
-// 目标终点是 position，反推出 start 使其 Y = 255
-        double endY = position.getY() + 0.5;
+        double particleY = position.getY() + 0.5;
         if (reverseDir.y == 0) {
-            // 水平向量，不可能延伸到 Y=255
-            hitResult.setPlain(BlockHitResult.miss(new Vec3(position.getX() + 0.5, endY, position.getZ() + 0.5), Direction.UP, position));
+            hitResult.setPlain(BlockHitResult.miss(new Vec3(position.getX() + 0.5, particleY, position.getZ() + 0.5), Direction.UP, position));
             return;
         }
 
-        double deltaY = 255.0 - endY;
-        double scale = deltaY / reverseDir.y;
-        Vec3 end = new Vec3(position.getX() + 0.5, endY, position.getZ() + 0.5);
-        Vec3 start = end.add(reverseDir.scale(scale));
+        // start：从粒子沿 reverseDir 延伸到 y=255
+        double deltaY = 255.0 - particleY;
+        double scaleUp = deltaY / reverseDir.y;
+        Vec3 particlePos = new Vec3(position.getX() + 0.5, particleY, position.getZ() + 0.5);
+        Vec3 start = particlePos.add(reverseDir.scale(scaleUp));
 
-// 构造射线检测
+        // end：从粒子沿雨落方向（-reverseDir）延伸 MAX_LENGTH，确保能打到粒子下方的水面
+        Vec3 forwardDir = reverseDir.scale(-1.0);
+        Vec3 end = particlePos.add(forwardDir.scale(MAX_LENGTH));
+
         ClipContext context = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
         hitResult.setPlain(this.raycaster.apply(context));
+
+        BlockHitResult initialHit = hitResult.getAcquire();
+        if (initialHit.getType() != HitResult.Type.MISS) {
+            double hitY = initialHit.getLocation().y;
+            BlockPos hitBlockPos = initialHit.getBlockPos();
+            FluidState fs = level.getFluidState(hitBlockPos);
+            if (!fs.isEmpty()) {
+                hitY = hitBlockPos.getY() + fs.getHeight(level, hitBlockPos);
+            }
+            float initialLength = (float)(this.position.y - hitY);
+            this.length.set(Math.max(0.0F, initialLength - 0.15F));
+        }
     }
 
     public Biome.Precipitation getPrecipitation() {
@@ -125,7 +147,9 @@ public class RainParticle {
 
     public void tick() {
         this.tickCount++;
-        alpha = 1f - ((float) this.tickCount / this.lifeSpan);
+        float rainLevel = (float) GlobalContext.getLoaderConfig().rain();
+        alpha = (1f - ((float) this.tickCount / this.lifeSpan))
+                * Mth.clamp((float) GlobalContext.getLoaderConfig().rain(), 0.2f, 1.0f);
 //        alpha = (float) Math.pow(GlobalContext.getLoaderConfig().rain(),1.2);
         //TODO: 不是很优良的解法
         //初始化的时候执行一次,tick后的放到异步执行
@@ -136,11 +160,11 @@ public class RainParticle {
             float pitchCos = Mth.cos(pitchRadians);
 
             Vec3 direction = new Vec3(Mth.sin(yawRadians) * pitchCos, Mth.sin(pitchRadians), Mth.cos(yawRadians) * pitchCos).normalize();
-            Vec3 end = origin.add(direction.scale(32.0));
+            Vec3 end = origin.add(direction.scale(128.0));
             BlockHitResult result = CreateRayUtils.clipWithContraptions(GlobalContext.level, origin, end);
             Vec3 hit = result.getType() == HitResult.Type.MISS ? end : result.getLocation();
             float distance = (float) origin.distanceTo(hit);
-            this.length.setRelease(distance);
+            this.length.setRelease(distance - 0.15F);
             this.hitResult.setRelease(result);
 
         });
@@ -170,7 +194,8 @@ public class RainParticle {
         stack.mulPose(inverseRotation.invert());
         stack.mulPose(Axis.YP.rotation(angleToCam));
         Matrix4f mat = stack.last().pose();
-        float vOffset = ((float) this.tickCount + partialTick) * -1F * (float) GlobalContext.getLoaderConfig().rain() * 0.1f;
+        float rainSpeed = Mth.clamp((float) GlobalContext.getLoaderConfig().rain(), 0.3f, 1.0f);
+        float vOffset = ((float) this.tickCount + partialTick) * -rainSpeed * 0.1f;
         float width = Mth.lerp(partialTick, this.widthO, this.width);
         float u1 = width / 2.0F * 0.5F + 0.5F;
         float u0 = 0.5F - width / 2.0F * 0.5F;
@@ -178,6 +203,7 @@ public class RainParticle {
         consumer.vertex(mat, -width / 2.0F, 0.0F, 0.0F).uv(u1, vOffset).color(r, g, b, 0f).uv2(packedLight).endVertex();
         consumer.vertex(mat, -width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u1, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha).uv2(packedLight).endVertex();
         consumer.vertex(mat, width / 2.0F, -this.length.getAcquire(), 0.0F).uv(u0, this.length.getAcquire() / 10.0F + vOffset).color(r, g, b, alpha).uv2(packedLight).endVertex();
+
     }
 
 }

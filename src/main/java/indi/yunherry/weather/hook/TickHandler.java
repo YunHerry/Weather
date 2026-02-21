@@ -20,9 +20,9 @@ public class TickHandler {
 
     @SubscribeEvent
     public static void onTick(TickEvent.LevelTickEvent event) {
-//        if (event.phase == TickEvent.Phase.START) {
-//            GlobalContext.update();
-//        }
+        if (event.phase == TickEvent.Phase.START) {
+            GlobalContext.update();
+        }
     }
 
 }

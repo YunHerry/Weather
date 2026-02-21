@@ -5,10 +5,11 @@ import indi.yunherry.weather.renderer.ParticleRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class GlobalContext {
@@ -28,9 +29,8 @@ public abstract class GlobalContext {
         level = mc.level;
         //debug
         DEBUG_VALUES.clear();
-        if (level != null) {
-            DEBUG_VALUES.put("Minecraft Time", String.format("%.0f / 24000", (float)level.getDayTime() % 24000));
-        }
+        if (level == null) return;
+        DEBUG_VALUES.put("Minecraft Time", String.format("%.0f / 24000", (float)level.getDayTime() % 24000));
         DEBUG_VALUES.put("Rain/Thunder Level", String.format("%.2f", rain));
         DEBUG_VALUES.put("Sky Light", String.format("%d", (int)skyLight));
         DEBUG_VALUES.put("Camera Y", String.format("%.2f", camPos.getCenter().y));
@@ -40,7 +40,6 @@ public abstract class GlobalContext {
         rain = level.getRainLevel(frameTime) * 0.5f + level.getThunderLevel(frameTime) * 0.5f;
         skyLight = level.getBrightness(LightLayer.SKY, camPos);
 //        AnimationController.tick(level);
-
         loaderConfig = LoaderConfig.builder().rain(rain).camPos(camPos.getCenter()).skyLight((int) skyLight).renderDistance(renderDistance).build();
     }
 

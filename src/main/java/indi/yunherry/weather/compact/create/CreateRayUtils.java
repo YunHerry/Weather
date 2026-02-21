@@ -82,7 +82,7 @@ public class CreateRayUtils {
     public static BlockHitResult clipWithContraptions(ClientLevel level, Vec3 start, Vec3 end) {
         return clipWithContraptions(level, start, end,
                 ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE);
+                ClipContext.Fluid.ANY);
     }
 
     private static BlockState getActualBlockState(AbstractContraptionEntity contraptionEntity, BlockPos localPos) {

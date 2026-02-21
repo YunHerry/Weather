@@ -50,7 +50,7 @@ public class Weather {
         MinecraftForge.EVENT_BUS.register(WorldContext.class);
         ModBiomeModifiers.register(modEventBus);
         WorldContext.mainClass = Weather.class;
-//        ClassLoader modClassLoader = Weather.class.getClassLoader();
+        ClassLoader modClassLoader = Weather.class.getClassLoader();
         //配置文件注册
         //TODO: Refactor
         if (ModList.get().isLoaded("cloth_config")) {
