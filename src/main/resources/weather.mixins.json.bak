@@ -12,7 +12,10 @@
     "MixinCommands",
     "MixinLevelByTicker",
     "MixinLevelRendererByWeather",
+    "MixinMagmaBlock",
     "MixinSeagrass",
+    "ModifiableBiomeAccessor",
+    "ModifiableBiomeInfoBiomeInfoAccessor",
     "create.MixinAbstractContraptionEntity",
     "create.MixinAbstractContraptionEntity_NoParticleCollision",
     "create.MixinContraption"
@@ -20,7 +23,9 @@
   "client": [
     "MixinBaseAshSmokeParticle",
     "MixinBiomeColors",
+    "MixinClientLevelBySkyColor",
     "MixinDripParticle",
+    "MixinFogRenderer",
     "MixinGameRendererByGlobalContext",
     "MixinLevelRendererByClouds",
     "MixinParticleByVS",

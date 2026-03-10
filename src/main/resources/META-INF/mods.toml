@@ -36,15 +36,24 @@ mandatory = true
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "valkyrienskies"
+mandatory = false
+versionRange = "[2.3.0-beta.5,)"
+ordering = "AFTER"
+side = "BOTH"
+
 [[dependencies."${mod_id}"]]
 modId="cloth_config"
 mandatory = false
-versionRange = "[11.1.118,)"
+versionRange = "[11.1.106,)"
 ordering = "BEFORE"
 side = "CLIENT"
+
 [[dependencies."${mod_id}"]]
 modId="create"
-mandatory=true
+mandatory=false
 versionRange="[6.0.8,6.1.0)"
 ordering="NONE"
 side="BOTH"

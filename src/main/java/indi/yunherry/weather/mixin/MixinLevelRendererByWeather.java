@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = LevelRenderer.class, priority = 1001)
+@Mixin(value = LevelRenderer.class)
 public abstract class MixinLevelRendererByWeather {
 
     @Shadow
@@ -23,6 +23,7 @@ public abstract class MixinLevelRendererByWeather {
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;renderSnowAndRain(Lnet/minecraft/client/renderer/LightTexture;FDDD)V"))
     public void weather$injectCustomWeatherRendering_renderLevel(PoseStack stack, float partialTick, long l, boolean flag, Camera camera, GameRenderer renderer, LightTexture texture, Matrix4f projMat, CallbackInfo ci) {
+
         WorldContext.renderers.forEach(item -> {
             if (item.isConditionalRendering()) {
                 if (item.getRenderer().isRender()) {
