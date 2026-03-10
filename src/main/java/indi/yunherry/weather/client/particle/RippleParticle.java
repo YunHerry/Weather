@@ -1,6 +1,7 @@
 package indi.yunherry.weather.client.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import indi.yunherry.weather.GlobalContext;
 import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.renderer.ParticleRenderer;
 import net.minecraft.client.Camera;
@@ -34,9 +35,12 @@ public class RippleParticle extends WeatherParticle {
         this.scale(random.nextFloat()+1);
         this.lifetime = 20;
 //        this.hasPhysics = true;
-        this.setPos(x, y, z);
         this.setSpriteFromAge(p_107724_);
 //        this.setAlpha(0.5F);
+//        if (GlobalContext.level.getBlockState(BlockPos.containing(x,y,z)).isAir()) {
+//            remove();
+//            return;
+//        }
         key.add(getXYZKey(x, y, z));
     }
     public void tick() {

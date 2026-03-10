@@ -1,28 +1,27 @@
 package indi.yunherry.weather.mixin;
 
 import indi.yunherry.weather.TickBlockInfo;
-import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.duck.ICustomTick;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.block.DoublePlantBlock;
+import net.minecraft.world.level.block.GrowingPlantBodyBlock;
+import net.minecraft.world.level.block.KelpPlantBlock;
 import net.minecraft.world.level.block.LiquidBlockContainer;
-import net.minecraft.world.level.block.SeagrassBlock;
-import net.minecraft.world.level.block.TallSeagrassBlock;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-@Mixin(SeagrassBlock.class)
-public abstract class MixinSeagrass implements LiquidBlockContainer, ICustomTick {
-
+@Mixin(KelpPlantBlock.class)
+public abstract class MixinKelpPlantBlock extends GrowingPlantBodyBlock implements LiquidBlockContainer, ICustomTick {
+    protected MixinKelpPlantBlock(Properties p_53886_, Direction p_53887_, VoxelShape p_53888_, boolean p_53889_) {
+        super(p_53886_, p_53887_, p_53888_, p_53889_);
+    }
     @Unique
     @Override
     public void weather$tick(ClientLevel level, TickBlockInfo info) {
@@ -38,8 +37,8 @@ public abstract class MixinSeagrass implements LiquidBlockContainer, ICustomTick
         if (level.getFluidState(pos).is(net.minecraft.tags.FluidTags.WATER)) {
             int effectiveLight = Math.max(actualSkyLight, blockLight);
 
-            float minProb = 0.001f;
-            float maxProb = 0.01f;
+            float minProb = 0.0001f;
+            float maxProb = 0.001f;
             float spawnThreshold = minProb + (maxProb - minProb) * (effectiveLight / 15.0f);
 
             // 3. 产生向上飘的气泡
@@ -56,5 +55,4 @@ public abstract class MixinSeagrass implements LiquidBlockContainer, ICustomTick
             }
         }
     }
-
 }

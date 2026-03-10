@@ -10,9 +10,12 @@
     "MixinBlockBehaviour",
     "MixinBubbleColumnBlock",
     "MixinCommands",
+    "MixinKelpBlock",
+    "MixinKelpPlantBlock",
     "MixinLevelByTicker",
     "MixinLevelRendererByWeather",
     "MixinSeagrass",
+    "MixinTallSeagrassBlock",
     "create.MixinAbstractContraptionEntity",
     "create.MixinAbstractContraptionEntity_NoParticleCollision",
     "create.MixinContraption"
@@ -20,6 +23,7 @@
   "client": [
     "MixinBaseAshSmokeParticle",
     "MixinBiomeColors",
+    "MixinBubbleColumnUpParticle",
     "MixinDripParticle",
     "MixinGameRendererByGlobalContext",
     "MixinLevelRendererByClouds",

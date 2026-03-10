@@ -1,27 +1,31 @@
 package indi.yunherry.weather.mixin;
 
 import indi.yunherry.weather.TickBlockInfo;
-import indi.yunherry.weather.WorldContext;
 import indi.yunherry.weather.duck.ICustomTick;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.LiquidBlockContainer;
 import net.minecraft.world.level.block.SeagrassBlock;
 import net.minecraft.world.level.block.TallSeagrassBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-@Mixin(SeagrassBlock.class)
-public abstract class MixinSeagrass implements LiquidBlockContainer, ICustomTick {
+@Mixin(TallSeagrassBlock.class)
+public abstract class MixinTallSeagrassBlock extends DoublePlantBlock implements LiquidBlockContainer, ICustomTick {
+    public MixinTallSeagrassBlock(Properties p_52861_) {
+        super(p_52861_);
+    }
 
     @Unique
     @Override
@@ -56,5 +60,4 @@ public abstract class MixinSeagrass implements LiquidBlockContainer, ICustomTick
             }
         }
     }
-
 }

@@ -6,9 +6,11 @@ import net.minecraft.client.particle.DripParticle;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 /**
@@ -26,20 +28,37 @@ public abstract class MixinDripParticle extends TextureSheetParticle {
     @Override
     public void remove() {
         super.remove();
-        BlockPos pos = new BlockPos((int) this.x, (int) this.y, (int) this.z).west();
+
+        BlockPos pos = BlockPos.containing(this.x, this.y, this.z);
         BlockState state = level.getBlockState(pos);
-        if (state.getBlock() == Blocks.WATER) {
-            level.addParticle(WorldContext.particleBeans.get("ripple").get(), this.x, this.y+0.4, this.z, 0.0, 0.0, 0.0);
-        } else if (state.getBlock() == Blocks.WATER_CAULDRON) {
-            double length = switch (state.getValue(LayeredCauldronBlock.LEVEL)) {
-                case 1 -> this.y + 0.4;
-                case 2 -> this.y + 0.6;
-                case 3 -> this.y + 0.7;
-                default -> 0;
+        if (state.is(Blocks.WATER)) {
+
+            level.addParticle(
+                    WorldContext.particleBeans.get("ripple").get(),
+                    this.x, this.y + 0.4, this.z,
+                    0.0, 0.0, 0.0
+            );
+
+        } else if (state.is(Blocks.WATER_CAULDRON)) {
+            double yOffset = switch (state.getValue(LayeredCauldronBlock.LEVEL)) {
+                case 1 -> pos.getY() + 0.3125;
+                case 2 -> pos.getY() + 0.5;
+                case 3 -> pos.getY() + 0.6875;
+                default -> pos.getY();
             };
-            level.addParticle(WorldContext.particleBeans.get("ripple").get(), this.x,  length, this.z, 0.0, 0.0, 0.0);
-        } else if (state.getBlock() == Blocks.CAULDRON) {
-            level.addParticle(ParticleTypes.RAIN,this.x, this.y+1, this.z, 0.0, 0.0, 0.0);
+            yOffset += 0.26;
+            level.addAlwaysVisibleParticle(
+                    WorldContext.particleBeans.get("ripple").get(),
+                    this.x, yOffset, this.z,
+                    0.0, 0.0, 0.0
+            );
+
+        } else if (state.is(Blocks.CAULDRON)) {
+            level.addParticle(
+                    ParticleTypes.RAIN,
+                    this.x, this.y + 1, this.z,
+                    0.0, 0.0, 0.0
+            );
         }
     }
 }

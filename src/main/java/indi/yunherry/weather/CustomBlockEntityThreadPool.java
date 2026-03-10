@@ -127,7 +127,7 @@ public class CustomBlockEntityThreadPool {
                             BlockState state = section.getBlockState(x, y, z);
 
                             // 粗筛选
-                            if (state.is(Blocks.BUBBLE_COLUMN) || state.is(Blocks.TALL_SEAGRASS)) {
+                            if (state.is(Blocks.BUBBLE_COLUMN) || state.is(Blocks.TALL_SEAGRASS) || state.is(Blocks.SEAGRASS) || state.is(Blocks.KELP)|| state.is(Blocks.KELP_PLANT)) {
                                 BlockPos pos = new BlockPos(chunkMinX + x, secMinY + y, chunkMinZ + z);
                                 candidates.add(new Candidate(pos, state));
                             }
@@ -144,12 +144,23 @@ public class CustomBlockEntityThreadPool {
 
                     for (Candidate c : candidates) {
                         if (c.state.is(Blocks.BUBBLE_COLUMN)) {
-                            // 主线程调用 getBlockState 是安全的
                             if (c.state.getBlock() instanceof ICustomTick customTick &&
                                     level.getBlockState(c.pos.above()).isAir()) {
                                 submitTicker(customTick, chunkPos, c.pos, c.state);
                             }
                         } else if (c.state.is(Blocks.TALL_SEAGRASS)) {
+                            if (c.state.getBlock() instanceof ICustomTick customTick) {
+                                submitTicker(customTick, chunkPos, c.pos, c.state);
+                            }
+                        } else if (c.state.is(Blocks.SEAGRASS)) {
+                            if (c.state.getBlock() instanceof ICustomTick customTick) {
+                                submitTicker(customTick, chunkPos, c.pos, c.state);
+                            }
+                        } else if (c.state.is(Blocks.KELP)) {
+                            if (c.state.getBlock() instanceof ICustomTick customTick) {
+                                submitTicker(customTick, chunkPos, c.pos, c.state);
+                            }
+                        }else if (c.state.is(Blocks.KELP_PLANT)) {
                             if (c.state.getBlock() instanceof ICustomTick customTick) {
                                 submitTicker(customTick, chunkPos, c.pos, c.state);
                             }
